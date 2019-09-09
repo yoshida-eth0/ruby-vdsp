@@ -330,7 +330,7 @@ VALUE rb_double_array_aref(VALUE self, VALUE i)
   long _i = NUM2LONG(i);
 
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
-  if (0<=_i && p->length<(unsigned long)_i) {
+  if (0<=_i && (unsigned long)_i<p->length) {
     return DBL2NUM(p->v.d[_i]);
   } else {
     rb_raise(rb_eIndexError, "Index out of range: %ld", _i);
@@ -342,7 +342,7 @@ VALUE rb_double_array_aset(VALUE self, VALUE i, VALUE val)
   long _i = NUM2LONG(i);
 
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
-  if (0<=_i && p->length<(unsigned long)_i) {
+  if (0<=_i && (unsigned long)_i<p->length) {
     val = rb_funcall(val, rb_intern("to_f"), 0);
     p->v.d[_i] = NUM2DBL(val);
     return val;
