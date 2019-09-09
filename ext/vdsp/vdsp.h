@@ -1,6 +1,17 @@
-#ifndef VDSP_H
-#define VDSP_H 1
+#include <ruby.h>
+#include <Accelerate/Accelerate.h>
 
-#include "ruby.h"
+typedef union {
+  void *ptr;
+  double *d;
+} VdspArrayValue;
 
-#endif /* VDSP_H */
+typedef struct {
+  VdspArrayValue v;
+  unsigned long length;
+} VdspArrayNativeResource;
+
+extern VALUE rb_double_array_plus(VALUE self, VALUE other);
+extern VALUE rb_double_array_mul(VALUE self, VALUE other);
+
+extern void Init_vdsp();
