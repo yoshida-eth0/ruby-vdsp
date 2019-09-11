@@ -48,7 +48,7 @@ double* get_double_array_value(VALUE va)
 long get_vdsp_array_length(VALUE va)
 {
   VdspArrayNativeResource *_a = get_vdsp_array_native_resource(va);
-  return LONG2NUM(_a->length);
+  return _a->length;
 }
 
 
@@ -239,7 +239,7 @@ VALUE rb_double_array_minus(VALUE self, VALUE other)
     VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
     VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
 
-    vDSP_vsubD(_a->v.d, 1, _b->v.d, 1, _c->v.d, 1, len);
+    vDSP_vsubD(_b->v.d, 1, _a->v.d, 1, _c->v.d, 1, len);
     return c;
 
   } else if (rb_obj_is_kind_of(other, rb_cNumeric)) {
@@ -394,18 +394,18 @@ VALUE rb_double_vadd(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride
 }
 
 // c[i] = a[i] - b[i]
-VALUE rb_double_vsub(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vsub(VALUE cls, VALUE b, VALUE b_stride, VALUE a, VALUE a_stride, VALUE c, VALUE c_stride, VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
   VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
   VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
   vDSP_Stride _b_stride = FIX2LONG(b_stride);
+  vDSP_Stride _a_stride = FIX2LONG(a_stride);
   vDSP_Stride _c_stride = FIX2LONG(c_stride);
   vDSP_Stride _n = FIX2LONG(n);
 
-  vDSP_vsubD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _n);
+  vDSP_vsubD(_b->v.d, _b_stride, _a->v.d, _a_stride, _c->v.d, _c_stride, _n);
 
   return c;
 }
@@ -496,18 +496,18 @@ VALUE rb_double_vaddsub(VALUE cls, VALUE i0, VALUE i0_stride, VALUE i1, VALUE i1
 }
 
 // c[i] = a[i] / b[i]
-VALUE rb_double_vdiv(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vdiv(VALUE cls, VALUE b, VALUE b_stride, VALUE a, VALUE a_stride, VALUE c, VALUE c_stride, VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
   VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
   VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
   vDSP_Stride _b_stride = FIX2LONG(b_stride);
+  vDSP_Stride _a_stride = FIX2LONG(a_stride);
   vDSP_Stride _c_stride = FIX2LONG(c_stride);
   vDSP_Stride _n = FIX2LONG(n);
 
-  vDSP_vdivD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _n);
+  vDSP_vdivD(_b->v.d, _b_stride, _a->v.d, _a_stride, _c->v.d, _c_stride, _n);
 
   return c;
 }
@@ -815,6 +815,7 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mDouble, "vsdiv", rb_double_vsdiv, 6);
   rb_define_singleton_method(rb_mDouble, "svdiv", rb_double_svdiv, 6);
   rb_define_singleton_method(rb_mDouble, "vaddsub", rb_double_vaddsub, 9);
+  rb_define_singleton_method(rb_mDouble, "vdiv", rb_double_vdiv, 7);
   rb_define_singleton_method(rb_mDouble, "vasm", rb_double_vasm, 8);
   rb_define_singleton_method(rb_mDouble, "vam", rb_double_vam, 9);
   rb_define_singleton_method(rb_mDouble, "vsbsm", rb_double_vsbsm, 8);
@@ -828,6 +829,4 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mDouble, "vmmsb", rb_double_vmmsb, 11);
   rb_define_singleton_method(rb_mDouble, "vsbsbm", rb_double_vsbsbm, 11);
   rb_define_singleton_method(rb_mDouble, "vasbm", rb_double_vasbm, 11);
-
-  printf("vdsp ext initialized\n");
 }
