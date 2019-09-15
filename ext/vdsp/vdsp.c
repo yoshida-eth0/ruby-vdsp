@@ -487,7 +487,7 @@ VALUE rb_double_array_maxv(VALUE self)
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
   double _c;
   vDSP_maxvD(p->v.d, 1, &_c, p->length);
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
 }
 
 VALUE rb_double_array_maxmgv(VALUE self)
@@ -495,7 +495,7 @@ VALUE rb_double_array_maxmgv(VALUE self)
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
   double _c;
   vDSP_maxmgvD(p->v.d, 1, &_c, p->length);
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
 }
 
 VALUE rb_double_array_minv(VALUE self)
@@ -503,7 +503,7 @@ VALUE rb_double_array_minv(VALUE self)
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
   double _c;
   vDSP_minvD(p->v.d, 1, &_c, p->length);
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
 }
 
 VALUE rb_double_array_minmgv(VALUE self)
@@ -511,7 +511,47 @@ VALUE rb_double_array_minmgv(VALUE self)
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
   double _c;
   vDSP_minmgvD(p->v.d, 1, &_c, p->length);
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_meanv(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_meanvD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_meamgv(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_meamgvD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_measqv(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_measqvD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_mvessq(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_mvessqD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_rmsqv(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_rmsqvD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
 }
 
 
@@ -1550,7 +1590,7 @@ VALUE rb_double_maxv(
     _n
   );
 
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
 }
 
 VALUE rb_double_maxmgv(
@@ -1570,7 +1610,7 @@ VALUE rb_double_maxmgv(
     _n
   );
 
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
 }
 
 VALUE rb_double_minv(
@@ -1590,7 +1630,7 @@ VALUE rb_double_minv(
     _n
   );
 
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
 }
 
 VALUE rb_double_minmgv(
@@ -1610,7 +1650,107 @@ VALUE rb_double_minmgv(
     _n
   );
 
-  return LONG2NUM(_c);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_meanv(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_meanvD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_meamgv(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_meamgvD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_measqv(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_measqvD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_mvessq(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_mvessqD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_rmsqv(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_rmsqvD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
 }
 
 
@@ -1672,6 +1812,13 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "minv", rb_double_array_minv, 0);
   rb_define_method(rb_cDoubleArray, "minmgv", rb_double_array_minmgv, 0);
 
+  // Vdsp::DoubleArray Vector Average Calculation
+  rb_define_method(rb_cDoubleArray, "meanv", rb_double_array_meanv, 0);
+  rb_define_method(rb_cDoubleArray, "meamgv", rb_double_array_meamgv, 0);
+  rb_define_method(rb_cDoubleArray, "measqv", rb_double_array_measqv, 0);
+  rb_define_method(rb_cDoubleArray, "mvessq", rb_double_array_mvessq, 0);
+  rb_define_method(rb_cDoubleArray, "rmsqv", rb_double_array_rmsqv, 0);
+
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
 
@@ -1721,4 +1868,11 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mUnsafeDouble, "maxmgv", rb_double_maxmgv, 4);
   rb_define_singleton_method(rb_mUnsafeDouble, "minv", rb_double_minv, 4);
   rb_define_singleton_method(rb_mUnsafeDouble, "minmgv", rb_double_minmgv, 4);
+
+  // Vdsp::UnsafeDouble Vector Average Calculation
+  rb_define_singleton_method(rb_mUnsafeDouble, "meanv", rb_double_meanv, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "meamgv", rb_double_meamgv, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "measqv", rb_double_measqv, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "mvessq", rb_double_mvessq, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "rmsqv", rb_double_rmsqv, 4);
 }

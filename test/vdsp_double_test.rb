@@ -383,4 +383,39 @@ class VdspDoubleTest < Minitest::Test
 
     assert_equal 1.0, a
   end
+
+  def test_meanv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = Vdsp::UnsafeDouble.meanv(c, 0, 1, c.length)
+
+    assert_equal 2.0, a
+  end
+
+  def test_meamgv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = Vdsp::UnsafeDouble.meamgv(c, 0, 1, c.length)
+
+    assert_equal 2.0, a
+  end
+
+  def test_measqv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = Vdsp::UnsafeDouble.measqv(c, 0, 1, c.length)
+
+    assert_in_delta 4.666666666666667, a
+  end
+
+  def test_mvessq
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = Vdsp::UnsafeDouble.mvessq(c, 0, 1, c.length)
+
+    assert_in_delta 4.666666666666667, a
+  end
+
+  def test_rmsqv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = Vdsp::UnsafeDouble.rmsqv(c, 0, 1, c.length)
+
+    assert_in_delta 2.160246899469287, a
+  end
 end

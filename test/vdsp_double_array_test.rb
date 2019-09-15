@@ -22,6 +22,24 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_equal [1.0, 2.0, 3.0], a.to_a
   end
 
+  def test_aref
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal 3.0, a[2]
+  end
+
+  def test_aset
+    a = Vdsp::DoubleArray.new(3)
+    a[0] = 1.0
+    a[1] = 2.0
+    a[2] = 3.0
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal 3.0, a[2]
+  end
+
   def test_operator_add
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
 
@@ -133,5 +151,40 @@ class VdspDoubleArrayTest < Minitest::Test
     a = c.minmgv
 
     assert_equal 1.0, a
+  end
+
+  def test_meanv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.meanv
+
+    assert_equal 2.0, a
+  end
+
+  def test_meamgv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.meamgv
+
+    assert_equal 2.0, a
+  end
+
+  def test_measqv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.measqv
+
+    assert_in_delta 4.666666666666667, a
+  end
+
+  def test_mvessq
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.mvessq
+
+    assert_in_delta 4.666666666666667, a
+  end
+
+  def test_rmsqv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.rmsqv
+
+    assert_in_delta 2.160246899469287, a
   end
 end
