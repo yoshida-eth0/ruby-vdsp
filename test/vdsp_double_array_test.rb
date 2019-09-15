@@ -187,4 +187,40 @@ class VdspDoubleArrayTest < Minitest::Test
 
     assert_in_delta 2.160246899469287, a
   end
+
+  def test_sve
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.sve
+
+    assert_equal 6.0, a
+  end
+
+  def test_svemg
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.svemg
+
+    assert_equal 6.0, a
+  end
+
+  def test_svesq
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.svesq
+
+    assert_equal 14.0, a
+  end
+
+  def test_sve_svesq
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    sum, sum_of_squares = c.sve_svesq
+
+    assert_equal 6.0, sum
+    assert_equal 14.0, sum_of_squares
+  end
+
+  def test_svs
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.svs
+
+    assert_equal 14.0, a
+  end
 end

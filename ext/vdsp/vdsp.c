@@ -554,6 +554,47 @@ VALUE rb_double_array_rmsqv(VALUE self)
   return DBL2NUM(_c);
 }
 
+VALUE rb_double_array_sve(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_sveD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_svemg(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_svemgD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_svesq(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_svesqD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_array_sve_svesq(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _sum;
+  double _sum_of_squares;
+  vDSP_sve_svesqD(p->v.d, 1, &_sum, &_sum_of_squares, p->length);
+  return rb_assoc_new(DBL2NUM(_sum), DBL2NUM(_sum_of_squares));
+}
+
+VALUE rb_double_array_svs(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double _c;
+  vDSP_svsD(p->v.d, 1, &_c, p->length);
+  return DBL2NUM(_c);
+}
+
 
 // Vdsp static method
 
@@ -1753,6 +1794,108 @@ VALUE rb_double_rmsqv(
   return DBL2NUM(_c);
 }
 
+VALUE rb_double_sve(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_sveD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_svemg(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_svemgD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_svesq(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_svesqD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
+VALUE rb_double_sve_svesq(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _sum;
+  double _sum_of_squares;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_sve_svesqD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_sum,
+    &_sum_of_squares,
+    _n
+  );
+
+  return rb_assoc_new(DBL2NUM(_sum), DBL2NUM(_sum_of_squares));
+}
+
+VALUE rb_double_svs(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  double _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_svsD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    &_c,
+    _n
+  );
+
+  return DBL2NUM(_c);
+}
+
 
 // Init
 
@@ -1819,6 +1962,13 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "mvessq", rb_double_array_mvessq, 0);
   rb_define_method(rb_cDoubleArray, "rmsqv", rb_double_array_rmsqv, 0);
 
+  // Vdsp::DoubleArray Vector Summation
+  rb_define_method(rb_cDoubleArray, "sve", rb_double_array_sve, 0);
+  rb_define_method(rb_cDoubleArray, "svemg", rb_double_array_svemg, 0);
+  rb_define_method(rb_cDoubleArray, "svesq", rb_double_array_svesq, 0);
+  rb_define_method(rb_cDoubleArray, "sve_svesq", rb_double_array_sve_svesq, 0);
+  rb_define_method(rb_cDoubleArray, "svs", rb_double_array_svs, 0);
+
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
 
@@ -1875,4 +2025,11 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mUnsafeDouble, "measqv", rb_double_measqv, 4);
   rb_define_singleton_method(rb_mUnsafeDouble, "mvessq", rb_double_mvessq, 4);
   rb_define_singleton_method(rb_mUnsafeDouble, "rmsqv", rb_double_rmsqv, 4);
+
+  // Vdsp::UnsafeDouble Vector Summation
+  rb_define_singleton_method(rb_mUnsafeDouble, "sve", rb_double_sve, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "svemg", rb_double_svemg, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "svesq", rb_double_svesq, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "sve_svesq", rb_double_sve_svesq, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "svs", rb_double_svs, 4);
 }
