@@ -12,7 +12,8 @@ typedef struct {
 } VdspArrayNativeResource;
 
 typedef struct {
-  VdspArrayNativeResource *res;
+  VdspArrayNativeResource *res0;
+  VdspArrayNativeResource *res1;
   long offset;
   vDSP_Stride stride;
 } VdspArrayParam;
