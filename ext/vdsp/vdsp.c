@@ -8,7 +8,7 @@ VALUE rb_mVdspArray;
 
 VALUE rb_cDoubleScalar;
 VALUE rb_cDoubleArray;
-VALUE rb_mDouble;
+VALUE rb_mUnsafeDouble;
 
 
 // Native resource
@@ -1123,30 +1123,30 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
 
-  // Vdsp::Double
-  rb_mDouble = rb_define_module_under(rb_mVdsp, "Double");
+  // Vdsp::UnsafeDouble
+  rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
 
   // Vector-based Arithmetic
-  rb_define_singleton_method(rb_mDouble, "vsadd", rb_double_vsadd, 8);
-  rb_define_singleton_method(rb_mDouble, "vadd", rb_double_vadd, 10);
-  rb_define_singleton_method(rb_mDouble, "vsub", rb_double_vsub, 10);
-  rb_define_singleton_method(rb_mDouble, "vsmul", rb_double_vsmul, 8);
-  rb_define_singleton_method(rb_mDouble, "vmul", rb_double_vmul, 10);
-  rb_define_singleton_method(rb_mDouble, "vsdiv", rb_double_vsdiv, 8);
-  rb_define_singleton_method(rb_mDouble, "svdiv", rb_double_svdiv, 8);
-  rb_define_singleton_method(rb_mDouble, "vaddsub", rb_double_vaddsub, 13);
-  rb_define_singleton_method(rb_mDouble, "vdiv", rb_double_vdiv, 10);
-  rb_define_singleton_method(rb_mDouble, "vasm", rb_double_vasm, 11);
-  rb_define_singleton_method(rb_mDouble, "vam", rb_double_vam, 13);
-  rb_define_singleton_method(rb_mDouble, "vsbsm", rb_double_vsbsm, 11);
-  rb_define_singleton_method(rb_mDouble, "vsbm", rb_double_vsbm, 13);
-  rb_define_singleton_method(rb_mDouble, "vmsa", rb_double_vmsa, 11);
-  rb_define_singleton_method(rb_mDouble, "vsma", rb_double_vsma, 11);
-  rb_define_singleton_method(rb_mDouble, "vma", rb_double_vma, 13);
-  rb_define_singleton_method(rb_mDouble, "vmsb", rb_double_vmsb, 13);
-  rb_define_singleton_method(rb_mDouble, "vsmsma", rb_double_vsmsma, 12);
-  rb_define_singleton_method(rb_mDouble, "vaam", rb_double_vaam, -1);
-  rb_define_singleton_method(rb_mDouble, "vmmsb", rb_double_vmmsb, -1);
-  rb_define_singleton_method(rb_mDouble, "vsbsbm", rb_double_vsbsbm, -1);
-  rb_define_singleton_method(rb_mDouble, "vasbm", rb_double_vasbm, -1);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsadd", rb_double_vsadd, 8);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vadd", rb_double_vadd, 10);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsub", rb_double_vsub, 10);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsmul", rb_double_vsmul, 8);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vmul", rb_double_vmul, 10);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsdiv", rb_double_vsdiv, 8);
+  rb_define_singleton_method(rb_mUnsafeDouble, "svdiv", rb_double_svdiv, 8);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vaddsub", rb_double_vaddsub, 13);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vdiv", rb_double_vdiv, 10);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vasm", rb_double_vasm, 11);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vam", rb_double_vam, 13);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsbsm", rb_double_vsbsm, 11);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsbm", rb_double_vsbm, 13);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vmsa", rb_double_vmsa, 11);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsma", rb_double_vsma, 11);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vma", rb_double_vma, 13);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vmsb", rb_double_vmsb, 13);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsmsma", rb_double_vsmsma, 12);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vaam", rb_double_vaam, -1);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vmmsb", rb_double_vmmsb, -1);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vsbsbm", rb_double_vsbsbm, -1);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vasbm", rb_double_vasbm, -1);
 }
