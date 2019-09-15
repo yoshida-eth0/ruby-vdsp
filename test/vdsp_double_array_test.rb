@@ -106,4 +106,32 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_equal 4.0, c[1]
     assert_equal 4.0, c[2]
   end
+
+  def test_maxv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.maxv
+
+    assert_equal 3.0, a
+  end
+
+  def test_maxmgv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.maxmgv
+
+    assert_equal 3.0, a
+  end
+
+  def test_minv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.minv
+
+    assert_equal 1.0, a
+  end
+
+  def test_minmgv
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a = c.minmgv
+
+    assert_equal 1.0, a
+  end
 end
