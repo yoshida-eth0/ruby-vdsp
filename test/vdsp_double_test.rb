@@ -6,7 +6,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = 2.5
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsadd(a, 1, b, c, 1, a.length)
+    Vdsp::Double::vsadd(a, 0, 1, b, c, 0, 1, a.length)
 
     assert_equal 3.5, c[0]
     assert_equal 4.5, c[1]
@@ -18,7 +18,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vadd(a, 1, b, 1, c, 1, a.length)
+    Vdsp::Double::vadd(a, 0, 1, b, 0, 1, c, 0, 1, a.length)
 
     assert_equal 3.5, c[0]
     assert_equal 5.5, c[1]
@@ -30,7 +30,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsub(b, 1, a, 1, c, 1, a.length)
+    Vdsp::Double::vsub(b, 0, 1, a, 0, 1, c, 0, 1, a.length)
 
     assert_equal (-1.5), c[0]
     assert_equal (-1.5), c[1]
@@ -42,7 +42,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = 2.5
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsmul(a, 1, b, c, 1, a.length)
+    Vdsp::Double::vsmul(a, 0, 1, b, c, 0, 1, a.length)
 
     assert_equal 2.5, c[0]
     assert_equal 5.0, c[1]
@@ -54,7 +54,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vmul(a, 1, b, 1, c, 1, a.length)
+    Vdsp::Double::vmul(a, 0, 1, b, 0, 1, c, 0, 1, a.length)
 
     assert_equal 2.5, c[0]
     assert_equal 7.0, c[1]
@@ -66,7 +66,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = 2.5
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsdiv(a, 1, b, c, 1, a.length)
+    Vdsp::Double::vsdiv(a, 0, 1, b, c, 0, 1, a.length)
 
     assert_equal 0.4, c[0]
     assert_equal 0.8, c[1]
@@ -78,7 +78,7 @@ class VdspDoubleTest < Minitest::Test
     a = 2.5
     b = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::svdiv(a, b, 1, c, 1, b.length)
+    Vdsp::Double::svdiv(a, b, 0, 1, c, 0, 1, b.length)
 
     assert_equal 2.5, c[0]
     assert_equal 1.25, c[1]
@@ -92,7 +92,7 @@ class VdspDoubleTest < Minitest::Test
     i1 = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     o0 = Vdsp::DoubleArray.new(3)
     o1 = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vaddsub(i0, 1, i1, 1, o0, 1, o1, 1, i0.length)
+    Vdsp::Double::vaddsub(i0, 0, 1, i1, 0, 1, o0, 0, 1, o1, 0, 1, i0.length)
 
     assert_equal 3.5, o0[0]
     assert_equal 5.5, o0[1]
@@ -108,7 +108,7 @@ class VdspDoubleTest < Minitest::Test
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vdiv(b, 1, a, 1, c, 1, a.length)
+    Vdsp::Double::vdiv(b, 0, 1, a, 0, 1, c, 0, 1, a.length)
 
     assert_equal 0.4, c[0]
     assert_in_delta 0.5714285714285714, c[1]
@@ -121,7 +121,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = 2.0
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vasm(a, 1, b, 1, c, d, 1, a.length)
+    Vdsp::Double::vasm(a, 0, 1, b, 0, 1, c, d, 0, 1, a.length)
 
     assert_equal 7.0, d[0]
     assert_equal 11.0, d[1]
@@ -134,7 +134,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vam(a, 1, b, 1, c, 1, d, 1, a.length)
+    Vdsp::Double::vam(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, a.length)
 
     assert_equal 7.0, d[0]
     assert_equal 16.5, d[1]
@@ -147,7 +147,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = 2.0
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsbsm(a, 1, b, 1, c, d, 1, a.length)
+    Vdsp::Double::vsbsm(a, 0, 1, b, 0, 1, c, d, 0, 1, a.length)
 
     assert_equal (-3.0), d[0]
     assert_equal (-3.0), d[1]
@@ -160,7 +160,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsbm(a, 1, b, 1, c, 1, d, 1, a.length)
+    Vdsp::Double::vsbm(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, a.length)
 
     assert_equal (-3.0), d[0]
     assert_equal (-4.5), d[1]
@@ -173,7 +173,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = 2.0
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vmsa(a, 1, b, 1, c, d, 1, a.length)
+    Vdsp::Double::vmsa(a, 0, 1, b, 0, 1, c, d, 0, 1, a.length)
 
     assert_equal 4.5, d[0]
     assert_equal 9.0, d[1]
@@ -186,7 +186,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vma(a, 1, b, 1, c, 1, d, 1, a.length)
+    Vdsp::Double::vma(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, a.length)
 
     assert_equal 4.5, d[0]
     assert_equal 10.0, d[1]
@@ -199,7 +199,7 @@ class VdspDoubleTest < Minitest::Test
     b = Vdsp::DoubleArray.create([2.5, 3.5, 4.5])
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vmsb(a, 1, b, 1, c, 1, d, 1, a.length)
+    Vdsp::Double::vmsb(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, a.length)
 
     assert_equal 0.5, d[0]
     assert_equal 4.0, d[1]
@@ -213,7 +213,7 @@ class VdspDoubleTest < Minitest::Test
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = 3.0
     e = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsmsma(a, 1, b, c, 1, d, e, 1, a.length)
+    Vdsp::Double::vsmsma(a, 0, 1, b, c, 0, 1, d, e, 0, 1, a.length)
 
     assert_equal 8.5, e[0]
     assert_equal 14.0, e[1]
@@ -227,7 +227,7 @@ class VdspDoubleTest < Minitest::Test
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.create([3.0, 5.0, 7.0])
     e = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vaam(a, 1, b, 1, c, 1, d, 1, e, 1, a.length)
+    Vdsp::Double::vaam(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, e, 0, 1, a.length)
 
     assert_equal 17.5, e[0]
     assert_equal 44.0, e[1]
@@ -241,7 +241,7 @@ class VdspDoubleTest < Minitest::Test
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.create([3.0, 5.0, 7.0])
     e = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vmmsb(a, 1, b, 1, c, 1, d, 1, e, 1, a.length)
+    Vdsp::Double::vmmsb(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, e, 0, 1, a.length)
 
     assert_equal (-3.5), e[0]
     assert_equal (-8.0), e[1]
@@ -255,7 +255,7 @@ class VdspDoubleTest < Minitest::Test
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.create([3.0, 5.0, 7.0])
     e = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vsbsbm(a, 1, b, 1, c, 1, d, 1, e, 1, a.length)
+    Vdsp::Double::vsbsbm(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, e, 0, 1, a.length)
 
     assert_equal 1.5, e[0]
     assert_equal 3.0, e[1]
@@ -269,7 +269,7 @@ class VdspDoubleTest < Minitest::Test
     c = Vdsp::DoubleArray.create([2.0, 3.0, 4.0])
     d = Vdsp::DoubleArray.create([3.0, 5.0, 7.0])
     e = Vdsp::DoubleArray.new(3)
-    Vdsp::Double::vasbm(a, 1, b, 1, c, 1, d, 1, e, 1, a.length)
+    Vdsp::Double::vasbm(a, 0, 1, b, 0, 1, c, 0, 1, d, 0, 1, e, 0, 1, a.length)
 
     assert_equal (-3.5), e[0]
     assert_equal (-11.0), e[1]

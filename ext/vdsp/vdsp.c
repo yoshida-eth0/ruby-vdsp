@@ -23,6 +23,10 @@ void vdsp_array_native_resource_delete(VdspArrayNativeResource * p)
 
 VdspArrayNativeResource* get_vdsp_array_native_resource(VALUE va)
 {
+  if (!rb_obj_is_kind_of(va, rb_mVdspArray)) {
+    rb_raise(rb_eArgError, "Vdsp::Array required");
+  }
+
   VALUE resource = rb_iv_get(va, "native_resource");
   if (resource==Qnil) {
     return NULL;
@@ -49,6 +53,13 @@ long get_vdsp_array_length(VALUE va)
 {
   VdspArrayNativeResource *_a = get_vdsp_array_native_resource(va);
   return _a->length;
+}
+
+void array_param(VdspArrayParam *param, VALUE arr, VALUE offset, VALUE stride)
+{
+  param->res = get_vdsp_array_native_resource(arr);
+  param->offset = NUM2LONG(offset);
+  param->stride = NUM2LONG(stride);
 }
 
 
@@ -361,404 +372,713 @@ VALUE rb_double_array_coerce(VALUE self, VALUE other)
 // Vdsp static method
 
 // c[i] = a[i] + b
-VALUE rb_double_vsadd(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vsadd(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
   double _b = NUM2DBL(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  vDSP_Stride _n = NUM2LONG(n);
 
-  vDSP_vsaddD(_a->v.d, _a_stride, &_b, _c->v.d, _c_stride, _n);
+  vDSP_vsaddD(
+    _a.res->v.d+_a.offset, _a.stride,
+    &_b,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // c[i] = a[i] + b[i]
-VALUE rb_double_vadd(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vadd(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_vaddD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vaddD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // c[i] = a[i] - b[i]
-VALUE rb_double_vsub(VALUE cls, VALUE b, VALUE b_stride, VALUE a, VALUE a_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vsub(
+  VALUE cls,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  VdspArrayParam _b;
+  VdspArrayParam _a;
+  VdspArrayParam _c;
 
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Stride _n = NUM2LONG(n);
 
-  vDSP_vsubD(_b->v.d, _b_stride, _a->v.d, _a_stride, _c->v.d, _c_stride, _n);
+  vDSP_vsubD(
+    _b.res->v.d+_b.offset, _b.stride,
+    _a.res->v.d+_a.offset, _a.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+     _n);
 
   return c;
 }
 
 // c[i] = a[i] * b
-VALUE rb_double_vsmul(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vsmul(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
   double _b = NUM2DBL(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  vDSP_Stride _n = NUM2LONG(n);
 
-  vDSP_vsmulD(_a->v.d, _a_stride, &_b, _c->v.d, _c_stride, _n);
+  vDSP_vsmulD(
+    _a.res->v.d+_a.offset, _a.stride,
+    &_b,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // c[i] = a[i] * b[i]
-VALUE rb_double_vmul(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vmul(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_vmulD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vmulD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // c[i] = a[i] / b
-VALUE rb_double_vsdiv(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vsdiv(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
   double _b = NUM2DBL(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  vDSP_Stride _n = NUM2LONG(n);
 
-  vDSP_vsdivD(_a->v.d, _a_stride, &_b, _c->v.d, _c_stride, _n);
+  vDSP_vsdivD(
+    _a.res->v.d+_a.offset, _a.stride,
+    &_b,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // c[i] = a / b[i]
-VALUE rb_double_svdiv(VALUE cls, VALUE a, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_svdiv(
+  VALUE cls,
+  VALUE a,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+
   double _a = NUM2DBL(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  vDSP_Stride _n = NUM2LONG(n);
 
-  vDSP_svdivD(&_a, _b->v.d, _b_stride, _c->v.d, _c_stride, _n);
+  vDSP_svdivD(
+    &_a,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // o0[i] = i1[i] + i0[i]
 // o1[i] = i1[i] - i0[i]
-VALUE rb_double_vaddsub(VALUE cls, VALUE i0, VALUE i0_stride, VALUE i1, VALUE i1_stride, VALUE o0, VALUE o0_stride, VALUE o1, VALUE o1_stride, VALUE n)
+VALUE rb_double_vaddsub(
+  VALUE cls,
+  VALUE i0, VALUE i0_offset, VALUE i0_stride,
+  VALUE i1, VALUE i1_offset, VALUE i1_stride,
+  VALUE o0, VALUE o0_offset, VALUE o0_stride,
+  VALUE o1, VALUE o1_offset, VALUE o1_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_i0 = get_vdsp_array_native_resource(i0);
-  VdspArrayNativeResource *_i1 = get_vdsp_array_native_resource(i1);
-  VdspArrayNativeResource *_o0 = get_vdsp_array_native_resource(o0);
-  VdspArrayNativeResource *_o1 = get_vdsp_array_native_resource(o1);
+  VdspArrayParam _i0;
+  VdspArrayParam _i1;
+  VdspArrayParam _o0;
+  VdspArrayParam _o1;
 
-  vDSP_Stride _i0_stride = FIX2LONG(i0_stride);
-  vDSP_Stride _i1_stride = FIX2LONG(i1_stride);
-  vDSP_Stride _o0_stride = FIX2LONG(o0_stride);
-  vDSP_Stride _o1_stride = FIX2LONG(o1_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_i0, i0, i0_offset, i0_stride);
+  array_param(&_i1, i1, i1_offset, i1_stride);
+  array_param(&_o0, o0, o0_offset, o0_stride);
+  array_param(&_o1, o1, o1_offset, o1_stride);
 
-  vDSP_vaddsubD(_i0->v.d, _i0_stride, _i1->v.d, _i1_stride, _o0->v.d, _o0_stride, _o1->v.d, _o1_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vaddsubD(
+    _i0.res->v.d+_i0.offset, _i0.stride,
+    _i1.res->v.d+_i1.offset, _i1.stride,
+    _o0.res->v.d+_o0.offset, _o0.stride,
+    _o1.res->v.d+_o1.offset, _o1.stride,
+    _n);
 
   return rb_assoc_new(o0, o1);
 }
 
 // c[i] = a[i] / b[i]
-VALUE rb_double_vdiv(VALUE cls, VALUE b, VALUE b_stride, VALUE a, VALUE a_stride, VALUE c, VALUE c_stride, VALUE n)
+VALUE rb_double_vdiv(
+  VALUE cls,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  VdspArrayParam _b;
+  VdspArrayParam _a;
+  VdspArrayParam _c;
 
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_c, c, c_offset, c_stride);
 
-  vDSP_vdivD(_b->v.d, _b_stride, _a->v.d, _a_stride, _c->v.d, _c_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vdivD(
+    _b.res->v.d+_b.offset, _c.stride,
+    _a.res->v.d+_a.offset, _a.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _n);
 
   return c;
 }
 
 // d[i] = (a[i] + b[i]) * c
-VALUE rb_double_vasm(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vasm(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  double _c = NUM2DBL(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  double _c = NUM2DBL(c); 
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vasmD(_a->v.d, _a_stride, _b->v.d, _b_stride, &_c, _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vasmD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    &_c,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] + b[i]) * c[i]
-VALUE rb_double_vam(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vam(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vamD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride,  _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vamD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _c.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] - b[i]) * c
-VALUE rb_double_vsbsm(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vsbsm(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  double _c = NUM2DBL(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  double _c = NUM2DBL(c); 
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vsbsmD(_a->v.d, _a_stride, _b->v.d, _b_stride, &_c, _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vsbsmD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    &_c,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] - b[i]) * c[i]
-VALUE rb_double_vsbm(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vsbm(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vsbmD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride,  _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vsbmD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _c.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] * b[i]) + c
-VALUE rb_double_vmsa(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vmsa(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  double _c = NUM2DBL(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  double _c = NUM2DBL(c); 
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vmsaD(_a->v.d, _a_stride, _b->v.d, _b_stride, &_c, _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vmsaD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    &_c,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] * b) + c[i]
-VALUE rb_double_vsma(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vsma(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  double _b = NUM2DBL(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  double _b = NUM2DBL(b); 
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vsmaD(_a->v.d, _a_stride, &_b, _c->v.d, _c_stride, _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vsmaD(
+    _a.res->v.d+_a.offset, _a.stride,
+    &_b,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] * b[i]) + c[i]
-VALUE rb_double_vma(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vma(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vmaD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vmaD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _c.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // d[i] = (a[i] * b[i]) - c[i]
-VALUE rb_double_vmsb(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE n)
+VALUE rb_double_vmsb(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE d, VALUE d_offset, VALUE d_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
 
-  vDSP_vmsbD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _d->v.d, _d_stride, _n);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vmsbD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _c.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _n);
 
   return d;
 }
 
 // e[i] = (a[i] * b) + (c[i] * d)
-VALUE rb_double_vsmsma(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE c, VALUE c_stride, VALUE d, VALUE e, VALUE e_stride, VALUE n)
+VALUE rb_double_vsmsma(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE d,
+  VALUE e, VALUE e_offset, VALUE e_stride,
+  VALUE n)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+  VdspArrayParam _e;
+
+  array_param(&_a, a, a_offset, a_stride);
   double _b = NUM2DBL(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  array_param(&_c, c, c_offset, c_stride);
   double _d = NUM2DBL(d);
-  VdspArrayNativeResource *_e = get_vdsp_array_native_resource(e);
+  array_param(&_e, e, e_offset, e_stride);
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _e_stride = FIX2LONG(e_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  vDSP_Stride _n = NUM2LONG(n);
 
-  vDSP_vsmsmaD(_a->v.d, _a_stride, &_b, _c->v.d, _c_stride, &_d, _e->v.d, _e_stride, _n);
+  vDSP_vsmsmaD(
+    _a.res->v.d+_a.offset, _a.stride,
+    &_b,
+    _c.res->v.d+_c.offset, _c.stride,
+    &_d,
+    _e.res->v.d+_e.offset, _e.stride,
+    _n);
 
   return e;
 }
 
 // e[i] = (a[i] + b[i]) * (c[i] + d[i])
-VALUE rb_double_vaam(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE e, VALUE e_stride, VALUE n)
+VALUE rb_double_vaam(int argc, VALUE *argv, VALUE cls)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
-  VdspArrayNativeResource *_e = get_vdsp_array_native_resource(e);
+  if (argc!=16) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
+  }
+  VALUE a = argv[0];
+  VALUE a_offset = argv[1];
+  VALUE a_stride = argv[2];
+  VALUE b = argv[3];
+  VALUE b_offset = argv[4];
+  VALUE b_stride = argv[5];
+  VALUE c = argv[6];
+  VALUE c_offset = argv[7];
+  VALUE c_stride = argv[8];
+  VALUE d = argv[9];
+  VALUE d_offset = argv[10];
+  VALUE d_stride = argv[11];
+  VALUE e = argv[12];
+  VALUE e_offset = argv[13];
+  VALUE e_stride = argv[14];
+  VALUE n = argv[15];
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _e_stride = FIX2LONG(e_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
+  VdspArrayParam _e;
 
-  vDSP_vaamD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _d->v.d, _d_stride, _e->v.d, _e_stride, _n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
+  array_param(&_e, e, e_offset, e_stride);
+
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vaamD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _e.res->v.d+_e.offset, _e.stride,
+    _n);
 
   return e;
 }
 
 // e[i] = (a[i] * b[i]) - (c[i] * d[i])
-VALUE rb_double_vmmsb(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE e, VALUE e_stride, VALUE n)
+VALUE rb_double_vmmsb(int argc, VALUE *argv, VALUE cls)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
-  VdspArrayNativeResource *_e = get_vdsp_array_native_resource(e);
+  if (argc!=16) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
+  }
+  VALUE a = argv[0];
+  VALUE a_offset = argv[1];
+  VALUE a_stride = argv[2];
+  VALUE b = argv[3];
+  VALUE b_offset = argv[4];
+  VALUE b_stride = argv[5];
+  VALUE c = argv[6];
+  VALUE c_offset = argv[7];
+  VALUE c_stride = argv[8];
+  VALUE d = argv[9];
+  VALUE d_offset = argv[10];
+  VALUE d_stride = argv[11];
+  VALUE e = argv[12];
+  VALUE e_offset = argv[13];
+  VALUE e_stride = argv[14];
+  VALUE n = argv[15];
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _e_stride = FIX2LONG(e_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
+  VdspArrayParam _e;
 
-  vDSP_vmmsbD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _d->v.d, _d_stride, _e->v.d, _e_stride, _n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
+  array_param(&_e, e, e_offset, e_stride);
+
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vmmsbD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _e.res->v.d+_e.offset, _e.stride,
+    _n);
 
   return e;
 }
 
 // e[i] = (a[i] - b[i]) * (c[i] - d[i])
-VALUE rb_double_vsbsbm(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE e, VALUE e_stride, VALUE n)
+VALUE rb_double_vsbsbm(int argc, VALUE *argv, VALUE cls)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
-  VdspArrayNativeResource *_e = get_vdsp_array_native_resource(e);
+  if (argc!=16) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
+  }
+  VALUE a = argv[0];
+  VALUE a_offset = argv[1];
+  VALUE a_stride = argv[2];
+  VALUE b = argv[3];
+  VALUE b_offset = argv[4];
+  VALUE b_stride = argv[5];
+  VALUE c = argv[6];
+  VALUE c_offset = argv[7];
+  VALUE c_stride = argv[8];
+  VALUE d = argv[9];
+  VALUE d_offset = argv[10];
+  VALUE d_stride = argv[11];
+  VALUE e = argv[12];
+  VALUE e_offset = argv[13];
+  VALUE e_stride = argv[14];
+  VALUE n = argv[15];
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _e_stride = FIX2LONG(e_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
+  VdspArrayParam _e;
 
-  vDSP_vsbsbmD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _d->v.d, _d_stride, _e->v.d, _e_stride, _n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
+  array_param(&_e, e, e_offset, e_stride);
+
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vsbsbmD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _e.res->v.d+_e.offset, _e.stride,
+    _n);
 
   return e;
 }
 
 // e[i] = (a[i] + b[i]) * (c[i] + d[i])
-VALUE rb_double_vasbm(VALUE cls, VALUE a, VALUE a_stride, VALUE b, VALUE b_stride, VALUE c, VALUE c_stride, VALUE d, VALUE d_stride, VALUE e, VALUE e_stride, VALUE n)
+VALUE rb_double_vasbm(int argc, VALUE *argv, VALUE cls)
 {
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(a);
-  VdspArrayNativeResource *_b = get_vdsp_array_native_resource(b);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  VdspArrayNativeResource *_d = get_vdsp_array_native_resource(d);
-  VdspArrayNativeResource *_e = get_vdsp_array_native_resource(e);
+  if (argc!=16) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
+  }
+  VALUE a = argv[0];
+  VALUE a_offset = argv[1];
+  VALUE a_stride = argv[2];
+  VALUE b = argv[3];
+  VALUE b_offset = argv[4];
+  VALUE b_stride = argv[5];
+  VALUE c = argv[6];
+  VALUE c_offset = argv[7];
+  VALUE c_stride = argv[8];
+  VALUE d = argv[9];
+  VALUE d_offset = argv[10];
+  VALUE d_stride = argv[11];
+  VALUE e = argv[12];
+  VALUE e_offset = argv[13];
+  VALUE e_stride = argv[14];
+  VALUE n = argv[15];
 
-  vDSP_Stride _a_stride = FIX2LONG(a_stride);
-  vDSP_Stride _b_stride = FIX2LONG(b_stride);
-  vDSP_Stride _c_stride = FIX2LONG(c_stride);
-  vDSP_Stride _d_stride = FIX2LONG(d_stride);
-  vDSP_Stride _e_stride = FIX2LONG(e_stride);
-  vDSP_Stride _n = FIX2LONG(n);
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+  VdspArrayParam _d;
+  VdspArrayParam _e;
 
-  vDSP_vasbmD(_a->v.d, _a_stride, _b->v.d, _b_stride, _c->v.d, _c_stride, _d->v.d, _d_stride, _e->v.d, _e_stride, _n);
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  array_param(&_d, d, d_offset, d_stride);
+  array_param(&_e, e, e_offset, e_stride);
+
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vasbmD(
+    _a.res->v.d+_a.offset, _a.stride,
+    _b.res->v.d+_b.offset, _b.stride,
+    _c.res->v.d+_c.offset, _c.stride,
+    _d.res->v.d+_d.offset, _d.stride,
+    _e.res->v.d+_e.offset, _e.stride,
+    _n);
 
   return e;
 }
@@ -807,26 +1127,26 @@ void Init_vdsp()
   rb_mDouble = rb_define_module_under(rb_mVdsp, "Double");
 
   // Vector-based Arithmetic
-  rb_define_singleton_method(rb_mDouble, "vsadd", rb_double_vsadd, 6);
-  rb_define_singleton_method(rb_mDouble, "vadd", rb_double_vadd, 7);
-  rb_define_singleton_method(rb_mDouble, "vsub", rb_double_vsub, 7);
-  rb_define_singleton_method(rb_mDouble, "vsmul", rb_double_vsmul, 6);
-  rb_define_singleton_method(rb_mDouble, "vmul", rb_double_vmul, 7);
-  rb_define_singleton_method(rb_mDouble, "vsdiv", rb_double_vsdiv, 6);
-  rb_define_singleton_method(rb_mDouble, "svdiv", rb_double_svdiv, 6);
-  rb_define_singleton_method(rb_mDouble, "vaddsub", rb_double_vaddsub, 9);
-  rb_define_singleton_method(rb_mDouble, "vdiv", rb_double_vdiv, 7);
-  rb_define_singleton_method(rb_mDouble, "vasm", rb_double_vasm, 8);
-  rb_define_singleton_method(rb_mDouble, "vam", rb_double_vam, 9);
-  rb_define_singleton_method(rb_mDouble, "vsbsm", rb_double_vsbsm, 8);
-  rb_define_singleton_method(rb_mDouble, "vsbm", rb_double_vsbm, 9);
-  rb_define_singleton_method(rb_mDouble, "vmsa", rb_double_vmsa, 8);
-  rb_define_singleton_method(rb_mDouble, "vsma", rb_double_vsma, 8);
-  rb_define_singleton_method(rb_mDouble, "vma", rb_double_vma, 9);
-  rb_define_singleton_method(rb_mDouble, "vmsb", rb_double_vmsb, 9);
-  rb_define_singleton_method(rb_mDouble, "vsmsma", rb_double_vsmsma, 9);
-  rb_define_singleton_method(rb_mDouble, "vaam", rb_double_vaam, 11);
-  rb_define_singleton_method(rb_mDouble, "vmmsb", rb_double_vmmsb, 11);
-  rb_define_singleton_method(rb_mDouble, "vsbsbm", rb_double_vsbsbm, 11);
-  rb_define_singleton_method(rb_mDouble, "vasbm", rb_double_vasbm, 11);
+  rb_define_singleton_method(rb_mDouble, "vsadd", rb_double_vsadd, 8);
+  rb_define_singleton_method(rb_mDouble, "vadd", rb_double_vadd, 10);
+  rb_define_singleton_method(rb_mDouble, "vsub", rb_double_vsub, 10);
+  rb_define_singleton_method(rb_mDouble, "vsmul", rb_double_vsmul, 8);
+  rb_define_singleton_method(rb_mDouble, "vmul", rb_double_vmul, 10);
+  rb_define_singleton_method(rb_mDouble, "vsdiv", rb_double_vsdiv, 8);
+  rb_define_singleton_method(rb_mDouble, "svdiv", rb_double_svdiv, 8);
+  rb_define_singleton_method(rb_mDouble, "vaddsub", rb_double_vaddsub, 13);
+  rb_define_singleton_method(rb_mDouble, "vdiv", rb_double_vdiv, 10);
+  rb_define_singleton_method(rb_mDouble, "vasm", rb_double_vasm, 11);
+  rb_define_singleton_method(rb_mDouble, "vam", rb_double_vam, 13);
+  rb_define_singleton_method(rb_mDouble, "vsbsm", rb_double_vsbsm, 11);
+  rb_define_singleton_method(rb_mDouble, "vsbm", rb_double_vsbm, 13);
+  rb_define_singleton_method(rb_mDouble, "vmsa", rb_double_vmsa, 11);
+  rb_define_singleton_method(rb_mDouble, "vsma", rb_double_vsma, 11);
+  rb_define_singleton_method(rb_mDouble, "vma", rb_double_vma, 13);
+  rb_define_singleton_method(rb_mDouble, "vmsb", rb_double_vmsb, 13);
+  rb_define_singleton_method(rb_mDouble, "vsmsma", rb_double_vsmsma, 12);
+  rb_define_singleton_method(rb_mDouble, "vaam", rb_double_vaam, -1);
+  rb_define_singleton_method(rb_mDouble, "vmmsb", rb_double_vmmsb, -1);
+  rb_define_singleton_method(rb_mDouble, "vsbsbm", rb_double_vsbsbm, -1);
+  rb_define_singleton_method(rb_mDouble, "vasbm", rb_double_vasbm, -1);
 }
