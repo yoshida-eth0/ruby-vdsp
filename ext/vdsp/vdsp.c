@@ -467,6 +467,21 @@ VALUE rb_double_array_hann_window(int argc, VALUE *argv, VALUE cls)
   return c;
 }
 
+VALUE rb_double_array_vclr(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  vDSP_vclrD(p->v.d, 1, p->length);
+  return self;
+}
+
+VALUE rb_double_array_vfill(VALUE self, VALUE a)
+{
+  double _a = NUM2DBL(a);
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  vDSP_vfillD(&_a, p->v.d, 1, p->length);
+  return self;
+}
+
 
 // Vdsp static method
 
@@ -1447,6 +1462,45 @@ VALUE rb_double_hann_window(VALUE cls, VALUE c, VALUE n, VALUE flag)
   return c;
 }
 
+VALUE rb_double_vclr(
+  VALUE cls,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _c;
+
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vclrD(
+    _c.res0->v.d+_c.offset, _c.stride,
+    _n
+  );
+
+  return c;
+}
+
+VALUE rb_double_vfill(
+  VALUE cls,
+  VALUE a,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _c;
+
+  double _a = NUM2DBL(a);
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vfillD(
+    &_a,
+    _c.res0->v.d+_c.offset, _c.stride,
+    _n
+  );
+
+  return c;
+}
+
 
 // Init
 
@@ -1488,16 +1542,22 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "[]=", rb_double_array_aset, 2);
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
+
+  // Vdsp::DoubleArray Vector Generation
   rb_define_singleton_method(rb_cDoubleArray, "vramp", rb_double_array_vramp, 3);
   rb_define_singleton_method(rb_cDoubleArray, "vgen", rb_double_array_vgen, 3);
   rb_define_singleton_method(rb_cDoubleArray, "blkman_window", rb_double_array_blkman_window, -1);
   rb_define_singleton_method(rb_cDoubleArray, "hamm_window", rb_double_array_hamm_window, -1);
   rb_define_singleton_method(rb_cDoubleArray, "hann_window", rb_double_array_hann_window, -1);
 
+  // Vdsp::DoubleArray Vector Clear and Fill Functions
+  rb_define_method(rb_cDoubleArray, "vclr", rb_double_array_vclr, 0);
+  rb_define_method(rb_cDoubleArray, "vfill", rb_double_array_vfill, 1);
+
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
 
-  // Vector-based Arithmetic
+  // Vdsp::UnsafeDouble Vector-based Arithmetic
   rb_define_singleton_method(rb_mUnsafeDouble, "vsadd", rb_double_vsadd, 8);
   rb_define_singleton_method(rb_mUnsafeDouble, "vadd", rb_double_vadd, 10);
   rb_define_singleton_method(rb_mUnsafeDouble, "vsub", rb_double_vsub, 10);
@@ -1521,7 +1581,7 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mUnsafeDouble, "vsbsbm", rb_double_vsbsbm, -1);
   rb_define_singleton_method(rb_mUnsafeDouble, "vasbm", rb_double_vasbm, -1);
 
-  // Vector Generation
+  // Vdsp::UnsafeDouble Vector Generation
   rb_define_singleton_method(rb_mUnsafeDouble, "vramp", rb_double_vramp, 6);
   rb_define_singleton_method(rb_mUnsafeDouble, "vgen", rb_double_vgen, 6);
   rb_define_singleton_method(rb_mUnsafeDouble, "vrampmul", rb_double_vrampmul, 9);
@@ -1533,4 +1593,8 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mUnsafeDouble, "blkman_window", rb_double_blkman_window, 3);
   rb_define_singleton_method(rb_mUnsafeDouble, "hamm_window", rb_double_hamm_window, 3);
   rb_define_singleton_method(rb_mUnsafeDouble, "hann_window", rb_double_hann_window, 3);
+
+  // Vdsp::UnsafeDouble Vector Clear and Fill Functions
+  rb_define_singleton_method(rb_mUnsafeDouble, "vclr", rb_double_vclr, 4);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vfill", rb_double_vfill, 5);
 }

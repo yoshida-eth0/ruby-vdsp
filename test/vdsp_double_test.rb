@@ -337,4 +337,22 @@ class VdspDoubleTest < Minitest::Test
     assert c[1]<c[2]
     assert c[2]>c[3]
   end
+
+  def test_vclr
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    Vdsp::UnsafeDouble.vclr(c, 0, 1, c.length)
+
+    assert_equal 0.0, c[0]
+    assert_equal 0.0, c[1]
+    assert_equal 0.0, c[2]
+  end
+
+  def test_vfill
+    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    Vdsp::UnsafeDouble.vfill(4.0, c, 0, 1, c.length)
+
+    assert_equal 4.0, c[0]
+    assert_equal 4.0, c[1]
+    assert_equal 4.0, c[2]
+  end
 end
