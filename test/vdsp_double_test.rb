@@ -275,4 +275,66 @@ class VdspDoubleTest < Minitest::Test
     assert_equal (-11.0), e[1]
     assert_equal (-22.5), e[2]
   end
+
+  def test_vramp
+    # TODO
+  end
+
+  def test_vgen
+    # TODO
+  end
+
+  def test_vramp
+    # TODO
+  end
+
+  def test_vrampmul2
+    # TODO
+  end
+
+  def test_vrampmuladd
+    # TODO
+  end
+
+  def test_vrampmuladd2
+    # TODO
+  end
+
+  def test_vgenp
+    # TODO
+  end
+
+  def test_vtabi
+    # TODO
+  end
+
+  def test_blkman_window
+    c = Vdsp::DoubleArray.new(4)
+    flag = Vdsp::FULL_WINDOW
+    Vdsp::UnsafeDouble.blkman_window(c, c.length, flag)
+
+    assert c[0]<c[1]
+    assert c[1]<c[2]
+    assert c[2]>c[3]
+  end
+
+  def test_hamm_window
+    c = Vdsp::DoubleArray.new(4)
+    flag = Vdsp::FULL_WINDOW
+    Vdsp::UnsafeDouble.hamm_window(c, c.length, flag)
+
+    assert c[0]<c[1]
+    assert c[1]<c[2]
+    assert c[2]>c[3]
+  end
+
+  def test_hann_window
+    c = Vdsp::DoubleArray.new(4)
+    flag = Vdsp::FULL_WINDOW
+    Vdsp::UnsafeDouble.hann_window(c, c.length, flag)
+
+    assert c[0]<c[1]
+    assert c[1]<c[2]
+    assert c[2]>c[3]
+  end
 end

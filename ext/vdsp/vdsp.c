@@ -380,7 +380,7 @@ VALUE rb_double_array_vramp(VALUE cls, VALUE a, VALUE b, VALUE n)
 {
   double _a = NUM2DBL(a);
   double _b = NUM2DBL(b);
-  long _n = NUM2LONG(n);
+  vDSP_Length _n = NUM2LONG(n);
 
   VALUE c = rb_class_new_instance(1, &n, rb_cDoubleArray);
   VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
@@ -394,12 +394,75 @@ VALUE rb_double_array_vgen(VALUE cls, VALUE a, VALUE b, VALUE n)
 {
   double _a = NUM2DBL(a);
   double _b = NUM2DBL(b);
-  long _n = NUM2LONG(n);
+  vDSP_Length _n = NUM2LONG(n);
 
   VALUE c = rb_class_new_instance(1, &n, rb_cDoubleArray);
   VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
 
   vDSP_vgenD(&_a, &_b, _c->v.d, 1, _n);
+
+  return c;
+}
+
+VALUE rb_double_array_blkman_window(int argc, VALUE *argv, VALUE cls)
+{
+  if (argc<1 || 2<argc) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
+  }
+  VALUE n = argv[0];
+
+  vDSP_Length _n = NUM2LONG(n);
+  int flag = 0;
+  if (argc==2) {
+    flag = (int)NUM2LONG(argv[1]);
+  }
+
+  VALUE c = rb_class_new_instance(1, &n, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+
+  vDSP_blkman_windowD(_c->v.d, _n, flag);
+
+  return c;
+}
+
+VALUE rb_double_array_hamm_window(int argc, VALUE *argv, VALUE cls)
+{
+  if (argc<1 || 2<argc) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
+  }
+  VALUE n = argv[0];
+
+  vDSP_Length _n = NUM2LONG(n);
+  int flag = 0;
+  if (argc==2) {
+    flag = (int)NUM2LONG(argv[1]);
+  }
+
+  VALUE c = rb_class_new_instance(1, &n, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+
+  vDSP_hamm_windowD(_c->v.d, _n, flag);
+
+  return c;
+}
+
+VALUE rb_double_array_hann_window(int argc, VALUE *argv, VALUE cls)
+{
+  if (argc<1 || 2<argc) {
+    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
+  }
+  VALUE n = argv[0];
+
+  vDSP_Length _n = NUM2LONG(n);
+  int flag = 0;
+  if (argc==2) {
+    flag = (int)NUM2LONG(argv[1]);
+  }
+
+  VALUE c = rb_class_new_instance(1, &n, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+
+  vDSP_hann_windowD(_c->v.d, _n, flag);
 
   return c;
 }
@@ -1351,6 +1414,39 @@ VALUE rb_double_vtabi(
   return d;
 }
 
+VALUE rb_double_blkman_window(VALUE cls, VALUE c, VALUE n, VALUE flag)
+{
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  vDSP_Stride _n = NUM2LONG(n);
+  int _flag = (int)NUM2LONG(flag);
+
+  vDSP_blkman_windowD(_c->v.d, _n, _flag);
+
+  return c;
+}
+
+VALUE rb_double_hamm_window(VALUE cls, VALUE c, VALUE n, VALUE flag)
+{
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  vDSP_Stride _n = NUM2LONG(n);
+  int _flag = (int)NUM2LONG(flag);
+
+  vDSP_hamm_windowD(_c->v.d, _n, _flag);
+
+  return c;
+}
+
+VALUE rb_double_hann_window(VALUE cls, VALUE c, VALUE n, VALUE flag)
+{
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  vDSP_Stride _n = NUM2LONG(n);
+  int _flag = (int)NUM2LONG(flag);
+
+  vDSP_hann_windowD(_c->v.d, _n, _flag);
+
+  return c;
+}
+
 
 // Init
 
@@ -1358,6 +1454,8 @@ void Init_vdsp()
 {
   // Vdsp
   rb_mVdsp = rb_define_module("Vdsp");
+  rb_define_const(rb_mVdsp, "HALF_WINDOW", LONG2NUM(vDSP_HALF_WINDOW));
+  rb_define_const(rb_mVdsp, "FULL_WINDOW", LONG2NUM(0));
 
   // Vdsp::Scalar
   rb_mVdspScalar = rb_define_module_under(rb_mVdsp, "Scalar");
@@ -1392,6 +1490,9 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
   rb_define_singleton_method(rb_cDoubleArray, "vramp", rb_double_array_vramp, 3);
   rb_define_singleton_method(rb_cDoubleArray, "vgen", rb_double_array_vgen, 3);
+  rb_define_singleton_method(rb_cDoubleArray, "blkman_window", rb_double_array_blkman_window, -1);
+  rb_define_singleton_method(rb_cDoubleArray, "hamm_window", rb_double_array_hamm_window, -1);
+  rb_define_singleton_method(rb_cDoubleArray, "hann_window", rb_double_array_hann_window, -1);
 
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
@@ -1429,4 +1530,7 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mUnsafeDouble, "vrampmuladd2", rb_double_vrampmuladd2, 11);
   rb_define_singleton_method(rb_mUnsafeDouble, "vgenp", rb_double_vgenp, 11);
   rb_define_singleton_method(rb_mUnsafeDouble, "vtabi", rb_double_vtabi, 11);
+  rb_define_singleton_method(rb_mUnsafeDouble, "blkman_window", rb_double_blkman_window, 3);
+  rb_define_singleton_method(rb_mUnsafeDouble, "hamm_window", rb_double_hamm_window, 3);
+  rb_define_singleton_method(rb_mUnsafeDouble, "hann_window", rb_double_hann_window, 3);
 }

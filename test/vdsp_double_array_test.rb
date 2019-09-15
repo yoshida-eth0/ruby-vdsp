@@ -53,4 +53,39 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_equal [0.5, 1.0, 2.0], (a / 2.0).to_a
     assert_equal [2.0, 1.0, 0.5], (2.0 / a).to_a
   end
+
+  def test_vramp
+    # TODO
+  end
+
+  def test_vgen
+    # TODO
+  end
+
+  def test_blkman_window
+    flag = Vdsp::FULL_WINDOW
+    c = Vdsp::DoubleArray.blkman_window(4, flag)
+
+    assert c[0]<c[1]
+    assert c[1]<c[2]
+    assert c[2]>c[3]
+  end
+
+  def test_hamm_window
+    flag = Vdsp::FULL_WINDOW
+    c = Vdsp::DoubleArray.hamm_window(4, flag)
+
+    assert c[0]<c[1]
+    assert c[1]<c[2]
+    assert c[2]>c[3]
+  end
+
+  def test_hann_window
+    flag = Vdsp::FULL_WINDOW
+    c = Vdsp::DoubleArray.hann_window(4, flag)
+
+    assert c[0]<c[1]
+    assert c[1]<c[2]
+    assert c[2]>c[3]
+  end
 end
