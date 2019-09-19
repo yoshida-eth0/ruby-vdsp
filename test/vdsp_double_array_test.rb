@@ -11,6 +11,25 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_instance_of(Vdsp::DoubleArray, c)
   end
 
+  def test_clone
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    b = a.clone
+    c = a.dup
+
+    assert a!=b
+    assert a!=c
+    assert b!=c
+
+    assert_equal a.to_a, b.to_a
+    assert_equal a.to_a, c.to_a
+    assert_equal a.length, b.length
+    assert_equal a.length, c.length
+
+    a[0] = 4.0
+    assert a[0]!=b[0]
+    assert a[0]!=c[0]
+  end
+
   def test_length
     a = Vdsp::DoubleArray.new(3)
     assert_equal 3, a.length

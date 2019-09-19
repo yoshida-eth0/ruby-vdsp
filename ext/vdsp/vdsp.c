@@ -154,6 +154,18 @@ VALUE rb_double_array_initialize(VALUE self, VALUE length)
   return self;
 }
 
+VALUE rb_double_array_initialize_copy(VALUE self, VALUE orig)
+{
+  VALUE length = rb_vdsp_array_length(orig);
+  rb_double_array_initialize(self, length);
+
+  VdspArrayNativeResource *dst = get_vdsp_array_native_resource(self);
+  VdspArrayNativeResource *src = get_vdsp_array_native_resource(orig);
+  memcpy(dst->v.ptr, src->v.ptr, sizeof(double) * src->length);
+
+  return self;
+}
+
 VALUE rb_double_array_set_values(VALUE self, VALUE ary)
 {
   if (!RB_TYPE_P(ary, T_ARRAY)) {
@@ -1262,7 +1274,7 @@ VALUE rb_double_vsbsbm(int argc, VALUE *argv, VALUE cls)
   return e;
 }
 
-// e[i] = (a[i] + b[i]) * (c[i] + d[i])
+// e[i] = (a[i] + b[i]) * (c[i] - d[i])
 VALUE rb_double_vasbm(int argc, VALUE *argv, VALUE cls)
 {
   if (argc!=16) {
@@ -1927,6 +1939,7 @@ void Init_vdsp()
   rb_cDoubleArray = rb_define_class_under(rb_mVdsp, "DoubleArray", rb_cObject);
   rb_include_module(rb_cDoubleArray, rb_mVdspArray);
   rb_define_method(rb_cDoubleArray, "initialize", rb_double_array_initialize, 1);
+  rb_define_private_method(rb_cDoubleArray, "initialize_copy", rb_double_array_initialize_copy, 1);
   rb_define_singleton_method(rb_cDoubleArray, "create", rb_double_array_create, 1);
   rb_define_method(rb_cDoubleArray, "to_da", rb_double_array_to_da, 0);
   rb_define_method(rb_cDoubleArray, "+", rb_double_array_plus, 1);
