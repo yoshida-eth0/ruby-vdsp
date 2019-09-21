@@ -36,6 +36,24 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_equal 3, a.size
   end
 
+  def test_each
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+
+    yield_values = []
+    a.each {|v|
+      yield_values << v
+    }
+    assert_equal a.to_a, yield_values
+    assert_equal a.to_a, a.each.to_a
+  end
+
+  def test_enumerable
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    b = a.map{|v| v * 2}
+
+    assert_equal [2.0, 4.0, 6.0], b
+  end
+
   def test_to_a
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
     assert_equal [1.0, 2.0, 3.0], a.to_a

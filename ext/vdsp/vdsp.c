@@ -190,6 +190,19 @@ VALUE rb_double_array_set_values(VALUE self, VALUE ary)
   return self;
 }
 
+VALUE rb_double_array_each(VALUE self)
+{
+  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
+  double *d = p->v.d;
+
+  RETURN_ENUMERATOR(self, 0, 0);
+
+  for (unsigned long i=0; i<p->length; i++) {
+      rb_yield(DBL2NUM(d[i]));
+  }
+  return self;
+}
+
 VALUE rb_double_array_get_values(VALUE self)
 {
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
@@ -1938,6 +1951,7 @@ void Init_vdsp()
   // Vdsp::DoubleArray
   rb_cDoubleArray = rb_define_class_under(rb_mVdsp, "DoubleArray", rb_cObject);
   rb_include_module(rb_cDoubleArray, rb_mVdspArray);
+  rb_include_module(rb_cDoubleArray, rb_mEnumerable);
   rb_define_method(rb_cDoubleArray, "initialize", rb_double_array_initialize, 1);
   rb_define_private_method(rb_cDoubleArray, "initialize_copy", rb_double_array_initialize_copy, 1);
   rb_define_singleton_method(rb_cDoubleArray, "create", rb_double_array_create, 1);
@@ -1948,6 +1962,7 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "/", rb_double_array_div, 1);
   rb_define_method(rb_cDoubleArray, "[]", rb_double_array_aref, 1);
   rb_define_method(rb_cDoubleArray, "[]=", rb_double_array_aset, 2);
+  rb_define_method(rb_cDoubleArray, "each", rb_double_array_each, 0);
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
 
