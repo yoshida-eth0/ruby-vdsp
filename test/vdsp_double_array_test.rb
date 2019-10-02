@@ -260,4 +260,8 @@ class VdspDoubleArrayTest < Minitest::Test
 
     assert_equal 14.0, a
   end
+
+  def test_biquad
+    # TODO
+  end
 end
