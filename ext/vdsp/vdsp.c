@@ -91,19 +91,6 @@ VdspBiquadNativeResource* get_vdsp_biquad_native_resource(VALUE vb)
   return p;
 }
 
-VdspBiquadSetup get_vdsp_biquad_setup(VALUE vb)
-{
-  VdspBiquadNativeResource *p = get_vdsp_biquad_native_resource(vb);
-  return p->setup;
-}
-
-long get_vdsp_biquad_sections(VALUE vb)
-{
-  VdspBiquadNativeResource *_b = get_vdsp_biquad_native_resource(vb);
-  return _b->sections;
-}
-
-
 
 // Vdsp::DoubleScalar
 
@@ -660,39 +647,65 @@ VALUE rb_double_array_svs(VALUE self)
 
 VALUE rb_vdsp_biquad_sections(VALUE self)
 {
-  return LONG2NUM(get_vdsp_biquad_sections(self));
+  VdspBiquadNativeResource *p = get_vdsp_biquad_native_resource(self);
+  return LONG2NUM(p->sections);
+}
+
+VALUE rb_vdsp_biquad_alloc_sections(VALUE self)
+{
+  VdspBiquadNativeResource *p = get_vdsp_biquad_native_resource(self);
+  return LONG2NUM(p->alloc_sections);
 }
 
 
 // Vdsp::DoubleBiquad
 
-VALUE rb_double_biquad_initialize(VALUE self, VALUE coefficients)
+VALUE rb_double_biquad_initialize(VALUE self, VALUE alloc_sections)
 {
-  coefficients = rb_ary_new3(1, coefficients);
-  coefficients = rb_funcall(coefficients, rb_intern("flatten"), 0);
-
-  VALUE rb_cBiquadCoefficient = rb_const_get(rb_mVdspBiquad, rb_intern("Coefficient"));
-
-  long sections = RARRAY_LEN(coefficients);
-  for (long i=0; i<sections; i++) {
-    VALUE coefficient = RARRAY_AREF(coefficients, i);
-    if (!rb_obj_is_kind_of(coefficient, rb_cBiquadCoefficient)) {
-      rb_raise(rb_eArgError, "Vdsp::Biquad::Coefficient required");
-    }
-  }
-
   VdspBiquadNativeResource *p = ALLOC(VdspBiquadNativeResource);
   p->type = 'd';
   p->coefs.ptr = NULL;
   p->delay.ptr = NULL;
   p->setup.ptr = NULL;
   p->sections = 0;
+  p->alloc_sections = 0;
 
   VALUE resource = Data_Wrap_Struct(CLASS_OF(self), 0, vdsp_biquad_native_resource_delete, p);
   rb_iv_set(self, "native_resource", resource);
 
-  p->coefs.ptr = calloc(sections*5, sizeof(double));
-  for (long i=0; i<sections; i++) {
+  long _alloc_sections = NUM2LONG(alloc_sections);
+  if (_alloc_sections<1) {
+    _alloc_sections = 1;
+  }
+  p->coefs.ptr = calloc(_alloc_sections*5, sizeof(double));
+  p->delay.ptr = calloc(_alloc_sections*2+2, sizeof(double));
+  p->alloc_sections = _alloc_sections;
+
+  return self;
+}
+
+VALUE rb_double_biquad_set_coefficients(VALUE self, VALUE coefficients)
+{
+  VdspBiquadNativeResource *p = get_vdsp_biquad_native_resource(self);
+
+  coefficients = rb_ary_new3(1, coefficients);
+  coefficients = rb_funcall(coefficients, rb_intern("flatten"), 0);
+
+  VALUE rb_cBiquadCoefficient = rb_const_get(rb_mVdspBiquad, rb_intern("Coefficient"));
+
+  unsigned long sections = RARRAY_LEN(coefficients);
+  if (p->alloc_sections<sections) {
+    rb_raise(rb_eArgError, "over sections: sections=%ld alloc_sections=%ld", sections, p->alloc_sections);
+  }
+
+  for (unsigned long i=0; i<sections; i++) {
+    VALUE coefficient = RARRAY_AREF(coefficients, i);
+    if (!rb_obj_is_kind_of(coefficient, rb_cBiquadCoefficient)) {
+      rb_raise(rb_eArgError, "Vdsp::Biquad::Coefficient required");
+    }
+  }
+
+  for (unsigned long i=0; i<sections; i++) {
     VALUE coefficient = RARRAY_AREF(coefficients, i);
     p->coefs.d[i*5+0] = NUM2DBL(rb_funcall(coefficient, rb_intern("b0"), 0));
     p->coefs.d[i*5+1] = NUM2DBL(rb_funcall(coefficient, rb_intern("b1"), 0));
@@ -700,31 +713,17 @@ VALUE rb_double_biquad_initialize(VALUE self, VALUE coefficients)
     p->coefs.d[i*5+3] = NUM2DBL(rb_funcall(coefficient, rb_intern("a1"), 0));
     p->coefs.d[i*5+4] = NUM2DBL(rb_funcall(coefficient, rb_intern("a2"), 0));
   }
-  p->delay.ptr = calloc(sections*2+2, sizeof(double));
+
+  if (p->setup.d) {
+    vDSP_biquad_DestroySetupD(p->setup.d);
+  }
   p->setup.d = vDSP_biquad_CreateSetupD(p->coefs.d, sections);
   p->sections = sections;
 
   return self;
 }
 
-VALUE rb_double_biquad_apply(VALUE self, VALUE x)
-{
-  //x = rb_funcall(x, rb_intern("to_da"), 0);
-  x = rb_funcall(rb_cDoubleArray, rb_intern("create"), 1, x);
-  VdspArrayNativeResource *_x = get_vdsp_array_native_resource(x);
-
-  VALUE lenv = LONG2NUM(_x->length);
-  VALUE y = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
-  VdspArrayNativeResource *_y = get_vdsp_array_native_resource(y);
-
-  VdspBiquadNativeResource *_b = get_vdsp_biquad_native_resource(self);
-
-  vDSP_biquadD(_b->setup.d, _b->delay.d, _x->v.d, 1, _y->v.d, 1, _x->length);
-
-  return y;
-}
-
-VALUE rb_double_biquad_coefficients(VALUE self)
+VALUE rb_double_biquad_get_coefficients(VALUE self)
 {
   VdspBiquadNativeResource *p = get_vdsp_biquad_native_resource(self);
   VALUE ret = rb_ary_new2(p->sections);
@@ -744,6 +743,35 @@ VALUE rb_double_biquad_coefficients(VALUE self)
   }
 
   return ret;
+}
+
+VALUE rb_double_biquad_create(VALUE cls, VALUE coefficients)
+{
+  coefficients = rb_ary_new3(1, coefficients);
+  coefficients = rb_funcall(coefficients, rb_intern("flatten"), 0);
+
+  VALUE len = LONG2NUM(RARRAY_LEN(coefficients));
+  VALUE obj = rb_class_new_instance(1, &len, rb_cDoubleBiquad);
+  rb_double_biquad_set_coefficients(obj, coefficients);
+
+  return obj;
+}
+
+VALUE rb_double_biquad_apply(VALUE self, VALUE x)
+{
+  //x = rb_funcall(x, rb_intern("to_da"), 0);
+  x = rb_funcall(rb_cDoubleArray, rb_intern("create"), 1, x);
+  VdspArrayNativeResource *_x = get_vdsp_array_native_resource(x);
+
+  VALUE lenv = LONG2NUM(_x->length);
+  VALUE y = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_y = get_vdsp_array_native_resource(y);
+
+  VdspBiquadNativeResource *_b = get_vdsp_biquad_native_resource(self);
+
+  vDSP_biquadD(_b->setup.d, _b->delay.d, _x->v.d, 1, _y->v.d, 1, _x->length);
+
+  return y;
 }
 
 
@@ -2151,13 +2179,16 @@ void Init_vdsp()
   // Vdsp::Biquad
   rb_mVdspBiquad = rb_define_module_under(rb_mVdsp, "Biquad");
   rb_define_method(rb_mVdspBiquad, "sections", rb_vdsp_biquad_sections, 0);
+  rb_define_method(rb_mVdspBiquad, "alloc_sections", rb_vdsp_biquad_alloc_sections, 0);
 
   // Vdsp::DoubleBiquad
   rb_cDoubleBiquad = rb_define_class_under(rb_mVdsp, "DoubleBiquad", rb_cObject);
   rb_include_module(rb_cDoubleBiquad, rb_mVdspBiquad);
   rb_define_method(rb_cDoubleBiquad, "initialize", rb_double_biquad_initialize, 1);
+  rb_define_singleton_method(rb_cDoubleBiquad, "create", rb_double_biquad_create, 1);
+  rb_define_method(rb_cDoubleBiquad, "coefficients=", rb_double_biquad_set_coefficients, 1);
+  rb_define_method(rb_cDoubleBiquad, "coefficients", rb_double_biquad_get_coefficients, 0);
   rb_define_method(rb_cDoubleBiquad, "apply", rb_double_biquad_apply, 1);
-  rb_define_method(rb_cDoubleBiquad, "coefficients", rb_double_biquad_coefficients, 0);
 
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");

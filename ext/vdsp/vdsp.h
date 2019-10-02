@@ -41,6 +41,7 @@ typedef struct {
   } delay;
   VdspBiquadSetup setup;
   unsigned long sections;
+  unsigned long alloc_sections;
 } VdspBiquadNativeResource;
 
 

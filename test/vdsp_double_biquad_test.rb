@@ -19,30 +19,62 @@ class VdspDoubleBiquadTest < Minitest::Test
 
   def test_create
     coef = Vdsp::Biquad::Coefficient.new(@b0/@a0, @b1/@a0, @b2/@a0, @a1/@a0, @a2/@a0)
-    biquad = Vdsp::DoubleBiquad.new(coef)
+    biquad1 = Vdsp::DoubleBiquad.new(1)
+    biquad2 = Vdsp::DoubleBiquad.create(coef)
 
     assert_instance_of(Vdsp::Biquad::Coefficient, coef)
-    assert_instance_of(Vdsp::DoubleBiquad, biquad)
+    assert_instance_of(Vdsp::DoubleBiquad, biquad1)
+    assert_instance_of(Vdsp::DoubleBiquad, biquad2)
   end
 
   def test_sections
     coef = Vdsp::Biquad::Coefficient.new(@b0/@a0, @b1/@a0, @b2/@a0, @a1/@a0, @a2/@a0)
 
-    a = Vdsp::DoubleBiquad.new(coef)
-    b = Vdsp::DoubleBiquad.new([coef])
-    c = Vdsp::DoubleBiquad.new([coef, coef])
+    a = Vdsp::DoubleBiquad.new(4)
+    b = Vdsp::DoubleBiquad.create(coef)
+    c = Vdsp::DoubleBiquad.create([coef])
+    d = Vdsp::DoubleBiquad.create([coef, coef])
 
-    assert_equal 1, a.sections
+    assert_equal 0, a.sections
     assert_equal 1, b.sections
-    assert_equal 2, c.sections
+    assert_equal 1, c.sections
+    assert_equal 2, d.sections
   end
 
-  def test_coefficients
+  def test_alloc_sections
     coef = Vdsp::Biquad::Coefficient.new(@b0/@a0, @b1/@a0, @b2/@a0, @a1/@a0, @a2/@a0)
-    biquad = Vdsp::DoubleBiquad.new(coef)
+
+    a = Vdsp::DoubleBiquad.new(4)
+    b = Vdsp::DoubleBiquad.create(coef)
+    c = Vdsp::DoubleBiquad.create([coef])
+    d = Vdsp::DoubleBiquad.create([coef, coef])
+
+    assert_equal 4, a.alloc_sections
+    assert_equal 1, b.alloc_sections
+    assert_equal 1, c.alloc_sections
+    assert_equal 2, d.alloc_sections
+  end
+
+  def test_get_coefficients
+    coef = Vdsp::Biquad::Coefficient.new(@b0/@a0, @b1/@a0, @b2/@a0, @a1/@a0, @a2/@a0)
+    biquad = Vdsp::DoubleBiquad.create(coef)
     coefs = biquad.coefficients
 
     assert_equal 1, coefs.size
+    assert_in_delta coef.b0, coefs[0].b0
+    assert_in_delta coef.b1, coefs[0].b1
+    assert_in_delta coef.b2, coefs[0].b2
+    assert_in_delta coef.a1, coefs[0].a1
+    assert_in_delta coef.a2, coefs[0].a2
+  end
+
+  def test_set_coefficients
+    coef = Vdsp::Biquad::Coefficient.new(@b0/@a0, @b1/@a0, @b2/@a0, @a1/@a0, @a2/@a0)
+    biquad = Vdsp::DoubleBiquad.new(1)
+    biquad.coefficients = coef
+    coefs = biquad.coefficients
+
+    assert_equal 1, biquad.sections
     assert_in_delta coef.b0, coefs[0].b0
     assert_in_delta coef.b1, coefs[0].b1
     assert_in_delta coef.b2, coefs[0].b2
