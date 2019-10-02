@@ -5,7 +5,7 @@ require "vdsp/version"
 Gem::Specification.new do |spec|
   spec.name          = "vdsp"
   spec.version       = Vdsp::VERSION
-  spec.authors       = ["yoshida"]
+  spec.authors       = ["Yoshida Tetsuya"]
   spec.email         = ["yoshida.eth0@gmail.com"]
 
   spec.summary       = %q{Perform basic arithmetic operations and common digital signal processing routines on large vectors.}
