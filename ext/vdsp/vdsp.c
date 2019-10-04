@@ -423,6 +423,72 @@ VALUE rb_double_array_coerce(VALUE self, VALUE other)
   return rb_assoc_new(other, self);
 }
 
+VALUE rb_double_array_abs(VALUE self)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  VALUE lenv = LONG2NUM(_a->length);
+  VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+
+  vDSP_vabsD(_a->v.d, 1, _c->v.d, 1, _a->length);
+
+  return c;
+}
+
+VALUE rb_double_array_abs_bang(VALUE self)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  vDSP_vabsD(_a->v.d, 1, _a->v.d, 1, _a->length);
+
+  return self;
+}
+
+VALUE rb_double_array_nabs(VALUE self)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  VALUE lenv = LONG2NUM(_a->length);
+  VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+
+  vDSP_vnabsD(_a->v.d, 1, _c->v.d, 1, _a->length);
+
+  return c;
+}
+
+VALUE rb_double_array_nabs_bang(VALUE self)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  vDSP_vnabsD(_a->v.d, 1, _a->v.d, 1, _a->length);
+
+  return self;
+}
+
+VALUE rb_double_array_negative(VALUE self)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  VALUE lenv = LONG2NUM(_a->length);
+  VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+
+  vDSP_vnegD(_a->v.d, 1, _c->v.d, 1, _a->length);
+
+  return c;
+}
+
+VALUE rb_double_array_negative_bang(VALUE self)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  vDSP_vnegD(_a->v.d, 1, _a->v.d, 1, _a->length);
+
+  return self;
+}
+
 VALUE rb_double_array_vramp(VALUE cls, VALUE a, VALUE b, VALUE n)
 {
   double _a = NUM2DBL(a);
@@ -514,14 +580,14 @@ VALUE rb_double_array_hann_window(int argc, VALUE *argv, VALUE cls)
   return c;
 }
 
-VALUE rb_double_array_vclr(VALUE self)
+VALUE rb_double_array_clear_bang(VALUE self)
 {
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
   vDSP_vclrD(p->v.d, 1, p->length);
   return self;
 }
 
-VALUE rb_double_array_vfill(VALUE self, VALUE a)
+VALUE rb_double_array_fill_bang(VALUE self, VALUE a)
 {
   double _a = NUM2DBL(a);
   VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
@@ -2100,6 +2166,69 @@ VALUE rb_double_biquad(
   return y;
 }
 
+VALUE rb_double_vabs(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vabsD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    _c.res0->v.d+_c.offset, _c.stride,
+    _n);
+
+  return c;
+}
+
+VALUE rb_double_vnabs(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vnabsD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    _c.res0->v.d+_c.offset, _c.stride,
+    _n);
+
+  return c;
+}
+
+VALUE rb_double_vneg(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Stride _n = NUM2LONG(n);
+
+  vDSP_vnegD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    _c.res0->v.d+_c.offset, _c.stride,
+    _n);
+
+  return c;
+}
+
 
 // Init
 
@@ -2144,6 +2273,14 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "each", rb_double_array_each, 0);
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
+  rb_define_method(rb_cDoubleArray, "abs", rb_double_array_abs, 0);
+  rb_define_method(rb_cDoubleArray, "abs!", rb_double_array_abs_bang, 0);
+  rb_define_method(rb_cDoubleArray, "nabs", rb_double_array_nabs, 0);
+  rb_define_method(rb_cDoubleArray, "nabs!", rb_double_array_nabs_bang, 0);
+  rb_define_method(rb_cDoubleArray, "negative", rb_double_array_negative, 0);
+  rb_define_alias(rb_cDoubleArray,  "neg", "negative");
+  rb_define_method(rb_cDoubleArray, "negative!", rb_double_array_negative_bang, 0);
+  rb_define_alias(rb_cDoubleArray,  "neg!", "negative!");
 
   // Vdsp::DoubleArray Vector Generation
   rb_define_singleton_method(rb_cDoubleArray, "vramp", rb_double_array_vramp, 3);
@@ -2153,8 +2290,8 @@ void Init_vdsp()
   rb_define_singleton_method(rb_cDoubleArray, "hann_window", rb_double_array_hann_window, -1);
 
   // Vdsp::DoubleArray Vector Clear and Fill Functions
-  rb_define_method(rb_cDoubleArray, "vclr", rb_double_array_vclr, 0);
-  rb_define_method(rb_cDoubleArray, "vfill", rb_double_array_vfill, 1);
+  rb_define_method(rb_cDoubleArray, "clear!", rb_double_array_clear_bang, 0);
+  rb_define_method(rb_cDoubleArray, "fill!", rb_double_array_fill_bang, 1);
 
   // Vdsp::DoubleArray Vector Extrema Calculation
   rb_define_method(rb_cDoubleArray, "maxv", rb_double_array_maxv, 0);
@@ -2256,4 +2393,9 @@ void Init_vdsp()
 
   // Vdsp::UnsafeDouble Biquadratic IIR Filters
   rb_define_singleton_method(rb_mUnsafeDouble, "biquad", rb_double_biquad, 8);
+
+  // Vdsp::UnsafeDouble Absolute and Negation Functions
+  rb_define_singleton_method(rb_mUnsafeDouble, "vabs", rb_double_vabs, 7);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vnabs", rb_double_vnabs, 7);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vneg", rb_double_vneg, 7);
 }

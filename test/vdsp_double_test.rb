@@ -357,101 +357,131 @@ class VdspDoubleTest < Minitest::Test
   end
 
   def test_maxv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.maxv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.maxv(a, 0, 1, a.length)
 
-    assert_equal 3.0, a
+    assert_equal 3.0, c
   end
 
   def test_maxmgv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.maxmgv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.maxmgv(a, 0, 1, a.length)
 
-    assert_equal 3.0, a
+    assert_equal 3.0, c
   end
 
   def test_minv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.minv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.minv(a, 0, 1, a.length)
 
-    assert_equal 1.0, a
+    assert_equal 1.0, c
   end
 
   def test_minmgv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.minmgv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.minmgv(a, 0, 1, a.length)
 
-    assert_equal 1.0, a
+    assert_equal 1.0, c
   end
 
   def test_meanv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.meanv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.meanv(a, 0, 1, a.length)
 
-    assert_equal 2.0, a
+    assert_equal 2.0, c
   end
 
   def test_meamgv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.meamgv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.meamgv(a, 0, 1, a.length)
 
-    assert_equal 2.0, a
+    assert_equal 2.0, c
   end
 
   def test_measqv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.measqv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.measqv(a, 0, 1, a.length)
 
-    assert_in_delta 4.666666666666667, a
+    assert_in_delta 4.666666666666667, c
   end
 
   def test_mvessq
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.mvessq(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.mvessq(a, 0, 1, a.length)
 
-    assert_in_delta 4.666666666666667, a
+    assert_in_delta 4.666666666666667, c
   end
 
   def test_rmsqv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.rmsqv(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.rmsqv(a, 0, 1, a.length)
 
-    assert_in_delta 2.160246899469287, a
+    assert_in_delta 2.160246899469287, c
   end
 
   def test_sve
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.sve(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.sve(a, 0, 1, a.length)
 
-    assert_equal 6.0, a
+    assert_equal 6.0, c
   end
 
   def test_svemg
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.svemg(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.svemg(a, 0, 1, a.length)
 
-    assert_equal 6.0, a
+    assert_equal 6.0, c
   end
 
   def test_svesq
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.svesq(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.svesq(a, 0, 1, a.length)
 
-    assert_equal 14.0, a
+    assert_equal 14.0, c
   end
 
   def test_sve_svesq
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    sum, sum_of_squares = Vdsp::UnsafeDouble.sve_svesq(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    sum, sum_of_squares = Vdsp::UnsafeDouble.sve_svesq(a, 0, 1, a.length)
 
     assert_equal 6.0, sum
     assert_equal 14.0, sum_of_squares
   end
 
   def test_svs
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = Vdsp::UnsafeDouble.svs(c, 0, 1, c.length)
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = Vdsp::UnsafeDouble.svs(a, 0, 1, a.length)
 
-    assert_equal 14.0, a
+    assert_equal 14.0, c
+  end
+
+  def test_vabs
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    c = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vabs(a, 0, 1, c, 0, 1, a.length)
+
+    assert_equal 1.0, c[0]
+    assert_equal 2.0, c[1]
+    assert_equal 3.0, c[2]
+  end
+
+  def test_vnabs
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    c = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vnabs(a, 0, 1, c, 0, 1, a.length)
+
+    assert_equal -1.0, c[0]
+    assert_equal -2.0, c[1]
+    assert_equal -3.0, c[2]
+  end
+
+  def test_vneg
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    c = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vneg(a, 0, 1, c, 0, 1, a.length)
+
+    assert_equal 1.0, c[0]
+    assert_equal 2.0, c[1]
+    assert_equal -3.0, c[2]
   end
 end

@@ -119,149 +119,203 @@ class VdspDoubleArrayTest < Minitest::Test
 
   def test_blkman_window
     flag = Vdsp::FULL_WINDOW
-    c = Vdsp::DoubleArray.blkman_window(4, flag)
+    a = Vdsp::DoubleArray.blkman_window(4, flag)
 
-    assert c[0]<c[1]
-    assert c[1]<c[2]
-    assert c[2]>c[3]
+    assert a[0]<a[1]
+    assert a[1]<a[2]
+    assert a[2]>a[3]
   end
 
   def test_hamm_window
     flag = Vdsp::FULL_WINDOW
-    c = Vdsp::DoubleArray.hamm_window(4, flag)
+    a = Vdsp::DoubleArray.hamm_window(4, flag)
 
-    assert c[0]<c[1]
-    assert c[1]<c[2]
-    assert c[2]>c[3]
+    assert a[0]<a[1]
+    assert a[1]<a[2]
+    assert a[2]>a[3]
   end
 
   def test_hann_window
     flag = Vdsp::FULL_WINDOW
-    c = Vdsp::DoubleArray.hann_window(4, flag)
+    a = Vdsp::DoubleArray.hann_window(4, flag)
 
-    assert c[0]<c[1]
-    assert c[1]<c[2]
-    assert c[2]>c[3]
+    assert a[0]<a[1]
+    assert a[1]<a[2]
+    assert a[2]>a[3]
   end
 
-  def test_vclr
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    c.vclr
+  def test_clear_bang
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a.clear!
 
-    assert_equal 0.0, c[0]
-    assert_equal 0.0, c[1]
-    assert_equal 0.0, c[2]
+    assert_equal 0.0, a[0]
+    assert_equal 0.0, a[1]
+    assert_equal 0.0, a[2]
   end
 
-  def test_vfill
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    c.vfill(4.0)
+  def test_fill_bang
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    a.fill!(4.0)
 
-    assert_equal 4.0, c[0]
-    assert_equal 4.0, c[1]
-    assert_equal 4.0, c[2]
+    assert_equal 4.0, a[0]
+    assert_equal 4.0, a[1]
+    assert_equal 4.0, a[2]
   end
 
   def test_maxv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.maxv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.maxv
 
-    assert_equal 3.0, a
+    assert_equal 3.0, c
   end
 
   def test_maxmgv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.maxmgv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.maxmgv
 
-    assert_equal 3.0, a
+    assert_equal 3.0, c
   end
 
   def test_minv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.minv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.minv
 
-    assert_equal 1.0, a
+    assert_equal 1.0, c
   end
 
   def test_minmgv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.minmgv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.minmgv
 
-    assert_equal 1.0, a
+    assert_equal 1.0, c
   end
 
   def test_meanv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.meanv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.meanv
 
-    assert_equal 2.0, a
+    assert_equal 2.0, c
   end
 
   def test_meamgv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.meamgv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.meamgv
 
-    assert_equal 2.0, a
+    assert_equal 2.0, c
   end
 
   def test_measqv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.measqv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.measqv
 
-    assert_in_delta 4.666666666666667, a
+    assert_in_delta 4.666666666666667, c
   end
 
   def test_mvessq
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.mvessq
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.mvessq
 
-    assert_in_delta 4.666666666666667, a
+    assert_in_delta 4.666666666666667, c
   end
 
   def test_rmsqv
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.rmsqv
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.rmsqv
 
-    assert_in_delta 2.160246899469287, a
+    assert_in_delta 2.160246899469287, c
   end
 
   def test_sve
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.sve
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.sve
 
-    assert_equal 6.0, a
+    assert_equal 6.0, c
   end
 
   def test_svemg
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.svemg
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.svemg
 
-    assert_equal 6.0, a
+    assert_equal 6.0, c
   end
 
   def test_svesq
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.svesq
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.svesq
 
-    assert_equal 14.0, a
+    assert_equal 14.0, c
   end
 
   def test_sve_svesq
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    sum, sum_of_squares = c.sve_svesq
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    sum, sum_of_squares = a.sve_svesq
 
     assert_equal 6.0, sum
     assert_equal 14.0, sum_of_squares
   end
 
   def test_svs
-    c = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
-    a = c.svs
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c = a.svs
 
-    assert_equal 14.0, a
+    assert_equal 14.0, c
   end
 
   def test_biquad
     # TODO
+  end
+
+  def test_abs
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a = a.abs
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal 3.0, a[2]
+  end
+
+  def test_abs_bang
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a.abs!
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal 3.0, a[2]
+  end
+
+  def test_nabs
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a = a.nabs
+
+    assert_equal -1.0, a[0]
+    assert_equal -2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
+  def test_nabs_bang
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a.nabs!
+
+    assert_equal -1.0, a[0]
+    assert_equal -2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
+  def test_negative
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a = a.negative
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
+  def test_negative_bang
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a.negative!
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal -3.0, a[2]
   end
 end
