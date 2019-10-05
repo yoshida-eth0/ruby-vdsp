@@ -261,10 +261,6 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_equal 14.0, c
   end
 
-  def test_biquad
-    # TODO
-  end
-
   def test_abs
     a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
     a = a.abs

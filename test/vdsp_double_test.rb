@@ -455,6 +455,10 @@ class VdspDoubleTest < Minitest::Test
     assert_equal 14.0, c
   end
 
+  def test_biquad
+    # TODO
+  end
+
   def test_vabs
     a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
     c = Vdsp::DoubleArray.new(a.length)
@@ -470,9 +474,9 @@ class VdspDoubleTest < Minitest::Test
     c = Vdsp::DoubleArray.new(a.length)
     Vdsp::UnsafeDouble.vnabs(a, 0, 1, c, 0, 1, a.length)
 
-    assert_equal -1.0, c[0]
-    assert_equal -2.0, c[1]
-    assert_equal -3.0, c[2]
+    assert_equal (-1.0), c[0]
+    assert_equal (-2.0), c[1]
+    assert_equal (-3.0), c[2]
   end
 
   def test_vneg
@@ -482,6 +486,92 @@ class VdspDoubleTest < Minitest::Test
 
     assert_equal 1.0, c[0]
     assert_equal 2.0, c[1]
-    assert_equal -3.0, c[2]
+    assert_equal (-3.0), c[2]
+  end
+
+  def test_vclip
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    d = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vclip(a, 0, 1, -1.0, 1.0, d, 0, 1, a.length)
+
+    assert_equal (-1.0), d[0]
+    assert_equal (-1.0), d[1]
+    assert_equal 0.0, d[2]
+    assert_equal 1.0, d[3]
+    assert_equal 1.0, d[4]
+  end
+
+  def test_vclipc
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    d = Vdsp::DoubleArray.new(a.length)
+    d, n_low, n_high = Vdsp::UnsafeDouble.vclipc(a, 0, 1, -1.0, 1.0, d, 0, 1, a.length)
+
+    assert_equal (-1.0), d[0]
+    assert_equal (-1.0), d[1]
+    assert_equal 0.0, d[2]
+    assert_equal 1.0, d[3]
+    assert_equal 1.0, d[4]
+    assert_equal 1, n_low
+    assert_equal 1, n_high
+  end
+
+  def test_viclip
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    d = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.viclip(a, 0, 1, -1.0, 1.0, d, 0, 1, a.length)
+
+    assert_equal (-1.0), d[0]
+    assert_equal (-2.0), d[1]
+    assert_equal 1.0, d[2]
+    assert_equal 1.0, d[3]
+    assert_equal 2.0, d[4]
+  end
+
+  def test_vthr
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    c = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vthr(a, 0, 1, 0.0, c, 0, 1, a.length)
+
+    assert_equal 0.0, c[0]
+    assert_equal 0.0, c[1]
+    assert_equal 0.0, c[2]
+    assert_equal 1.0, c[3]
+    assert_equal 2.0, c[4]
+  end
+
+  def test_vlim
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    d = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vlim(a, 0, 1, 0.0, 1.0, d, 0, 1, a.length)
+
+    assert_equal (-1.0), d[0]
+    assert_equal (-1.0), d[1]
+    assert_equal 1.0, d[2]
+    assert_equal 1.0, d[3]
+    assert_equal 1.0, d[4]
+  end
+
+  def test_vthres
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    c = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vthres(a, 0, 1, 1.0, c, 0, 1, a.length)
+
+    assert_equal 0.0, c[0]
+    assert_equal 0.0, c[1]
+    assert_equal 0.0, c[2]
+    assert_equal 1.0, c[3]
+    assert_equal 2.0, c[4]
+  end
+
+  def test_vthrsc
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 0.0, 1.0, 2.0])
+    d = Vdsp::DoubleArray.new(a.length)
+    Vdsp::UnsafeDouble.vthrsc(a, 0, 1, 0.0, 1.0, d, 0, 1, a.length)
+
+    assert_equal (-1.0), d[0]
+    assert_equal (-1.0), d[1]
+    assert_equal 1.0, d[2]
+    assert_equal 1.0, d[3]
+    assert_equal 1.0, d[4]
   end
 end
