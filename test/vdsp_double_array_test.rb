@@ -109,6 +109,102 @@ class VdspDoubleArrayTest < Minitest::Test
     assert_equal [2.0, 1.0, 0.5], (2.0 / a).to_a
   end
 
+  def test_slice
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0, 4.0])
+    b = a.slice(2)
+    c = a.slice(1, 2)
+    d = a.slice(1..2)
+    e = a.slice(-2)
+    f = a.slice(1, 10)
+    g = a.slice(-2, 2)
+    h = a.slice(1, -2)
+
+    assert_equal [1.0, 2.0], b.to_a
+    assert_equal [2.0, 3.0], c.to_a
+    assert_equal [2.0, 3.0], d.to_a
+    assert_nil e
+    assert_equal [2.0, 3.0, 4.0], f.to_a
+    assert_nil g
+    assert_nil h
+  end
+
+  def test_resize
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+
+    a.resize(2)
+    assert_equal 2, a.length
+    assert_equal [1.0, 2.0], a.to_a
+
+    a.resize(4)
+    assert_equal 4, a.length
+    assert_equal [1.0, 2.0, 0.0, 0.0], a.to_a
+  end
+
+  def test_concat
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    b = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+
+    a.concat(b)
+    assert_equal [1.0, 2.0, 3.0, 1.0, 2.0, 3.0], a.to_a
+
+    a.concat(b, b)
+    assert_equal [1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0, 3.0], a.to_a
+  end
+
+  def test_abs
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a = a.abs
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal 3.0, a[2]
+  end
+
+  def test_abs_bang
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a.abs!
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal 3.0, a[2]
+  end
+
+  def test_nabs
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a = a.nabs
+
+    assert_equal -1.0, a[0]
+    assert_equal -2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
+  def test_nabs_bang
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a.nabs!
+
+    assert_equal -1.0, a[0]
+    assert_equal -2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
+  def test_negative
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a = a.negative
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
+  def test_negative_bang
+    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
+    a.negative!
+
+    assert_equal 1.0, a[0]
+    assert_equal 2.0, a[1]
+    assert_equal -3.0, a[2]
+  end
+
   def test_vramp
     # TODO
   end
@@ -259,59 +355,5 @@ class VdspDoubleArrayTest < Minitest::Test
     c = a.svs
 
     assert_equal 14.0, c
-  end
-
-  def test_abs
-    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
-    a = a.abs
-
-    assert_equal 1.0, a[0]
-    assert_equal 2.0, a[1]
-    assert_equal 3.0, a[2]
-  end
-
-  def test_abs_bang
-    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
-    a.abs!
-
-    assert_equal 1.0, a[0]
-    assert_equal 2.0, a[1]
-    assert_equal 3.0, a[2]
-  end
-
-  def test_nabs
-    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
-    a = a.nabs
-
-    assert_equal -1.0, a[0]
-    assert_equal -2.0, a[1]
-    assert_equal -3.0, a[2]
-  end
-
-  def test_nabs_bang
-    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
-    a.nabs!
-
-    assert_equal -1.0, a[0]
-    assert_equal -2.0, a[1]
-    assert_equal -3.0, a[2]
-  end
-
-  def test_negative
-    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
-    a = a.negative
-
-    assert_equal 1.0, a[0]
-    assert_equal 2.0, a[1]
-    assert_equal -3.0, a[2]
-  end
-
-  def test_negative_bang
-    a = Vdsp::DoubleArray.create([-1.0, -2.0, 3.0])
-    a.negative!
-
-    assert_equal 1.0, a[0]
-    assert_equal 2.0, a[1]
-    assert_equal -3.0, a[2]
   end
 end

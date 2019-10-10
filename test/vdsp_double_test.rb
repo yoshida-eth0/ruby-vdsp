@@ -455,6 +455,19 @@ class VdspDoubleTest < Minitest::Test
     assert_equal 14.0, c
   end
 
+  def test_vswap
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    b = Vdsp::DoubleArray.create([4.0, 5.0, 6.0])
+    Vdsp::UnsafeDouble.vswap(a, 0, 1, b, 0, 1, a.length)
+
+    assert_equal [4.0, 5.0, 6.0], a.to_a
+    assert_equal [1.0, 2.0, 3.0], b.to_a
+  end
+
+  def test_vtmerg
+    # TODO
+  end
+
   def test_biquad
     # TODO
   end

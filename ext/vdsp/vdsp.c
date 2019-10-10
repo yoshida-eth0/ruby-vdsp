@@ -423,6 +423,100 @@ VALUE rb_double_array_coerce(VALUE self, VALUE other)
   return rb_assoc_new(other, self);
 }
 
+VALUE rb_double_array_slice(int argc, const VALUE *argv, VALUE self)
+{
+  rb_check_arity(argc, 1, 2);
+
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  long alen = _a->length;
+
+  long beg = 0;
+  long len = 0;
+
+  if (argc==2) {
+    beg = NUM2LONG(argv[0]);
+    len = NUM2LONG(argv[1]);
+  } else if (FIXNUM_P(argv[0])){
+    len = FIX2LONG(argv[0]);
+  } else {
+    switch (rb_range_beg_len(argv[0], &beg, &len, alen, 0)) {
+      case Qfalse:
+      case Qnil:
+        return Qnil;
+      default:
+        break;
+    }
+  }
+
+  if (beg > alen) return Qnil;
+  if (beg < 0 || len < 0) return Qnil;
+
+  if (alen < len || alen < beg + len) {
+    len = alen - beg;
+  }
+
+  VALUE lenv = LONG2NUM(len);
+  VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  memcpy(_c->v.d, _a->v.d+beg, sizeof(double) * len);
+
+  return c;
+}
+
+void double_array_resize(VdspArrayNativeResource *_a, unsigned long len)
+{
+  if (_a->length!=len) {
+    void *new_v = realloc(_a->v.ptr, (_a->length + len) * sizeof(double));
+    if (!new_v) {
+      rb_raise(rb_eRuntimeError, "memory allocation error");
+    }
+    _a->v.ptr = new_v;
+
+    if (_a->length<len) {
+      memset(_a->v.d+_a->length, 0, (len-_a->length) * sizeof(double));
+    }
+  }
+}
+
+VALUE rb_double_array_resize(VALUE self, VALUE size)
+{
+  unsigned long len = NUM2LONG(size);
+
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  double_array_resize(_a, len);
+  _a->length = len;
+
+  return self;
+}
+
+VALUE rb_double_array_concat(int argc, const VALUE *argv, VALUE self)
+{
+  rb_check_frozen(self);
+
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  VdspArrayNativeResource *_argv[argc];
+
+  unsigned long len = _a->length;
+  unsigned long new_len = len;
+  for (long i=0; i<argc; i++) {
+    VALUE arg = rb_funcall(argv[i], rb_intern("to_da"), 0);
+    _argv[i] = get_vdsp_array_native_resource(arg);
+    new_len += _argv[i]->length;
+  }
+
+  double_array_resize(_a, new_len);
+
+  new_len = len;
+  for (long i=0; i<argc; i++) {
+    VdspArrayNativeResource *_b = _argv[i];
+    memcpy(_a->v.d+new_len, _b->v.d, _b->length * sizeof(double));
+    new_len += _b->length;
+  }
+  _a->length = new_len;
+
+  return self;
+}
+
 VALUE rb_double_array_abs(VALUE self)
 {
   VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
@@ -517,7 +611,7 @@ VALUE rb_double_array_vgen(VALUE cls, VALUE a, VALUE b, VALUE n)
   return c;
 }
 
-VALUE rb_double_array_blkman_window(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_array_blkman_window(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc<1 || 2<argc) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
@@ -538,7 +632,7 @@ VALUE rb_double_array_blkman_window(int argc, VALUE *argv, VALUE cls)
   return c;
 }
 
-VALUE rb_double_array_hamm_window(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_array_hamm_window(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc<1 || 2<argc) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
@@ -559,7 +653,7 @@ VALUE rb_double_array_hamm_window(int argc, VALUE *argv, VALUE cls)
   return c;
 }
 
-VALUE rb_double_array_hann_window(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_array_hann_window(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc<1 || 2<argc) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
@@ -1364,7 +1458,7 @@ VALUE rb_double_vsmsma(
 }
 
 // e[i] = (a[i] + b[i]) * (c[i] + d[i])
-VALUE rb_double_vaam(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_vaam(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc!=16) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
@@ -1412,7 +1506,7 @@ VALUE rb_double_vaam(int argc, VALUE *argv, VALUE cls)
 }
 
 // e[i] = (a[i] * b[i]) - (c[i] * d[i])
-VALUE rb_double_vmmsb(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_vmmsb(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc!=16) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
@@ -1460,7 +1554,7 @@ VALUE rb_double_vmmsb(int argc, VALUE *argv, VALUE cls)
 }
 
 // e[i] = (a[i] - b[i]) * (c[i] - d[i])
-VALUE rb_double_vsbsbm(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_vsbsbm(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc!=16) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
@@ -1508,7 +1602,7 @@ VALUE rb_double_vsbsbm(int argc, VALUE *argv, VALUE cls)
 }
 
 // e[i] = (a[i] + b[i]) * (c[i] - d[i])
-VALUE rb_double_vasbm(int argc, VALUE *argv, VALUE cls)
+VALUE rb_double_vasbm(int argc, const VALUE *argv, VALUE cls)
 {
   if (argc!=16) {
     rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
@@ -2141,6 +2235,54 @@ VALUE rb_double_svs(
   return DBL2NUM(_c);
 }
 
+VALUE rb_double_vswap(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  vDSP_Length _n = NUM2LONG(n);
+
+  vDSP_vswapD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    _b.res0->v.d+_b.offset, _b.stride,
+    _n
+  );
+
+  return rb_ary_new3(2, a, b);
+}
+
+VALUE rb_double_vtmerg(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE b, VALUE b_offset, VALUE b_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  VdspArrayParam _b;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_b, b, b_offset, b_stride);
+  array_param(&_c, c, c_offset, c_stride);
+  vDSP_Length _n = NUM2LONG(n);
+
+  vDSP_vtmergD(
+    _a.res0->v.d+_a.offset, _a.stride,
+    _b.res0->v.d+_b.offset, _b.stride,
+    _c.res0->v.d+_c.offset, _c.stride,
+    _n
+  );
+
+  return c;
+}
+
 VALUE rb_double_biquad(
   VALUE cls,
   VALUE biquad,
@@ -2460,6 +2602,9 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "each", rb_double_array_each, 0);
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
+  rb_define_method(rb_cDoubleArray, "slice", rb_double_array_slice, -1);
+  rb_define_method(rb_cDoubleArray, "resize", rb_double_array_resize, 1);
+  rb_define_method(rb_cDoubleArray, "concat", rb_double_array_concat, -1);
   rb_define_method(rb_cDoubleArray, "abs", rb_double_array_abs, 0);
   rb_define_method(rb_cDoubleArray, "abs!", rb_double_array_abs_bang, 0);
   rb_define_method(rb_cDoubleArray, "nabs", rb_double_array_nabs, 0);
@@ -2577,6 +2722,10 @@ void Init_vdsp()
   rb_define_singleton_method(rb_mUnsafeDouble, "svesq", rb_double_svesq, 4);
   rb_define_singleton_method(rb_mUnsafeDouble, "sve_svesq", rb_double_sve_svesq, 4);
   rb_define_singleton_method(rb_mUnsafeDouble, "svs", rb_double_svs, 4);
+
+  // Vdsp::UnsafeDouble Copying, Element Swapping, and Merging Functions
+  rb_define_singleton_method(rb_mUnsafeDouble, "vswap", rb_double_vswap, 7);
+  rb_define_singleton_method(rb_mUnsafeDouble, "vtmerg", rb_double_vtmerg, 10);
 
   // Vdsp::UnsafeDouble Biquadratic IIR Filters
   rb_define_singleton_method(rb_mUnsafeDouble, "biquad", rb_double_biquad, 8);
