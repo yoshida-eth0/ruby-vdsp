@@ -119,12 +119,12 @@ class VdspDoubleArrayTest < Minitest::Test
     g = a.slice(-2, 2)
     h = a.slice(1, -2)
 
-    assert_equal [1.0, 2.0], b.to_a
+    assert_equal 3.0, b
     assert_equal [2.0, 3.0], c.to_a
     assert_equal [2.0, 3.0], d.to_a
-    assert_nil e
+    assert_equal 3.0, e
     assert_equal [2.0, 3.0, 4.0], f.to_a
-    assert_nil g
+    assert_equal [3.0, 4.0], g.to_a
     assert_nil h
   end
 

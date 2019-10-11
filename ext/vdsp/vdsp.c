@@ -391,16 +391,84 @@ VALUE rb_double_array_div(VALUE self, VALUE other)
   }
 }
 
-VALUE rb_double_array_aref(VALUE self, VALUE i)
+VALUE rb_double_array_entry(VALUE self, long offset)
 {
-  long _i = NUM2LONG(i);
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  long len = _a->length;
 
-  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
-  if (0<=_i && (unsigned long)_i<p->length) {
-    return DBL2NUM(p->v.d[_i]);
-  } else {
-    rb_raise(rb_eIndexError, "Index out of range: %ld", _i);
+  if (offset < 0) {
+    offset += len;
+    if (offset < 0) return Qnil;
   }
+  else if (len <= offset) {
+    return Qnil;
+  }
+  return DBL2NUM(_a->v.d[offset]);
+}
+
+VALUE rb_double_array_subseq(VALUE self, long beg, long len)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  long alen = _a->length;
+
+  if (beg > alen) return Qnil;
+  if (beg < 0 || len < 0) return Qnil;
+
+  if (alen < len || alen < beg + len) {
+    len = alen - beg;
+  }
+
+  VALUE lenv = LONG2NUM(len);
+  VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
+  memcpy(_c->v.d, _a->v.d+beg, sizeof(double) * len);
+
+  return c;
+}
+
+VALUE rb_double_array_aref2(VALUE self, VALUE b, VALUE e)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+
+  long beg = NUM2LONG(b);
+  long len = NUM2LONG(e);
+
+  if (beg < 0) {
+    beg += _a->length;
+  }
+
+  return rb_double_array_subseq(self, beg, len);
+}
+
+VALUE rb_double_array_aref1(VALUE self, VALUE arg)
+{
+  long beg, len;
+
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  long alen = _a->length;
+
+  if (FIXNUM_P(arg)) {
+    return rb_double_array_entry(self, FIX2LONG(arg));
+  }
+  switch (rb_range_beg_len(arg, &beg, &len, alen, 0)) {
+    case Qfalse:
+      break;
+    case Qnil:
+      return Qnil;
+    default:
+      return rb_double_array_subseq(self, beg, len);
+  }
+  return rb_double_array_entry(self, FIX2LONG(arg));
+}
+
+VALUE rb_double_array_aref(int argc, const VALUE *argv, VALUE self)
+{
+  rb_check_arity(argc, 1, 2);
+
+  if (argc == 2) {
+    return rb_double_array_aref2(self, argv[0], argv[1]);
+  }
+  return rb_double_array_aref1(self, argv[0]);
 }
 
 VALUE rb_double_array_aset(VALUE self, VALUE i, VALUE val)
@@ -421,46 +489,6 @@ VALUE rb_double_array_coerce(VALUE self, VALUE other)
 {
   other = rb_class_new_instance(1, &other, rb_cDoubleScalar);
   return rb_assoc_new(other, self);
-}
-
-VALUE rb_double_array_slice(int argc, const VALUE *argv, VALUE self)
-{
-  rb_check_arity(argc, 1, 2);
-
-  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
-  long alen = _a->length;
-
-  long beg = 0;
-  long len = 0;
-
-  if (argc==2) {
-    beg = NUM2LONG(argv[0]);
-    len = NUM2LONG(argv[1]);
-  } else if (FIXNUM_P(argv[0])){
-    len = FIX2LONG(argv[0]);
-  } else {
-    switch (rb_range_beg_len(argv[0], &beg, &len, alen, 0)) {
-      case Qfalse:
-      case Qnil:
-        return Qnil;
-      default:
-        break;
-    }
-  }
-
-  if (beg > alen) return Qnil;
-  if (beg < 0 || len < 0) return Qnil;
-
-  if (alen < len || alen < beg + len) {
-    len = alen - beg;
-  }
-
-  VALUE lenv = LONG2NUM(len);
-  VALUE c = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
-  VdspArrayNativeResource *_c = get_vdsp_array_native_resource(c);
-  memcpy(_c->v.d, _a->v.d+beg, sizeof(double) * len);
-
-  return c;
 }
 
 void double_array_resize(VdspArrayNativeResource *_a, unsigned long len)
@@ -2597,12 +2625,12 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "-", rb_double_array_minus, 1);
   rb_define_method(rb_cDoubleArray, "*", rb_double_array_mul, 1);
   rb_define_method(rb_cDoubleArray, "/", rb_double_array_div, 1);
-  rb_define_method(rb_cDoubleArray, "[]", rb_double_array_aref, 1);
+  rb_define_method(rb_cDoubleArray, "[]", rb_double_array_aref, -1);
   rb_define_method(rb_cDoubleArray, "[]=", rb_double_array_aset, 2);
   rb_define_method(rb_cDoubleArray, "each", rb_double_array_each, 0);
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);
-  rb_define_method(rb_cDoubleArray, "slice", rb_double_array_slice, -1);
+  rb_define_method(rb_cDoubleArray, "slice", rb_double_array_aref, -1);
   rb_define_method(rb_cDoubleArray, "resize", rb_double_array_resize, 1);
   rb_define_method(rb_cDoubleArray, "concat", rb_double_array_concat, -1);
   rb_define_method(rb_cDoubleArray, "abs", rb_double_array_abs, 0);
