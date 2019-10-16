@@ -47,5 +47,6 @@ typedef struct {
 
 extern VALUE rb_double_array_plus(VALUE self, VALUE other);
 extern VALUE rb_double_array_mul(VALUE self, VALUE other);
+extern void double_array_resize(VdspArrayNativeResource *_a, unsigned long len);
 
 extern void Init_vdsp();

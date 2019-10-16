@@ -471,18 +471,129 @@ VALUE rb_double_array_aref(int argc, const VALUE *argv, VALUE self)
   return rb_double_array_aref1(self, argv[0]);
 }
 
-VALUE rb_double_array_aset(VALUE self, VALUE i, VALUE val)
+VALUE double_array_aset1(VALUE self, long idx, VALUE val)
 {
-  long _i = NUM2LONG(i);
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  double _val = NUM2DBL(val);
 
-  VdspArrayNativeResource *p = get_vdsp_array_native_resource(self);
-  if (0<=_i && (unsigned long)_i<p->length) {
-    val = rb_funcall(val, rb_intern("to_f"), 0);
-    p->v.d[_i] = NUM2DBL(val);
-    return val;
-  } else {
-    rb_raise(rb_eIndexError, "Index out of range: %ld", _i);
+  long len = _a->length;
+
+  if (idx < 0) {
+    idx += len;
+    if (idx < 0) {
+      rb_raise(rb_eIndexError, "index %ld too small for array; minimum: %ld", idx - len, -len);
+    }
   }
+
+  if (idx >= len) {
+    //rb_raise(rb_eIndexError, "Index out of range: %ld", idx);
+    double_array_resize(_a, idx+1);
+    _a->length = idx+1;
+  }
+
+  _a->v.d[idx] = _val;
+
+  return self;
+}
+
+VALUE double_array_aset2(VALUE self, long beg, long len, VALUE val)
+{
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  long alen = _a->length;
+
+  if (len<0) {
+    len += alen;
+  }
+  if (len<beg) {
+    len = beg;
+  }
+  if (alen < len || alen < beg + len) {
+    len = alen - beg;
+  }
+
+  if (RB_TYPE_P(val, T_ARRAY)) {
+    val = rb_funcall(rb_cDoubleArray, rb_intern("create"), 1, val);
+  }
+  if (rb_obj_is_kind_of(val, rb_mVdspArray)) {
+    val = rb_funcall(val, rb_intern("to_da"), 0);
+    if (self==val) {
+      val = rb_funcall(val, rb_intern("clone"), 0);
+    }
+
+    VdspArrayNativeResource *_b = get_vdsp_array_native_resource(val);
+    long new_len = alen - len + _b->length;
+
+    bool after_resize = false;
+    if (alen==new_len) {
+    } else if (alen<new_len) {
+      double_array_resize(_a, new_len);
+      _a->length = new_len;
+    } else {
+      after_resize = true;
+    }
+
+    memmove(_a->v.d+beg+_b->length, _a->v.d+beg+len, sizeof(double) * (alen-beg-len));
+    memcpy(_a->v.d+beg, _b->v.d, sizeof(double) * _b->length);
+
+    if (after_resize) {
+      double_array_resize(_a, new_len);
+      _a->length = new_len;
+    }
+
+    return self;
+  } else {
+    long new_len = alen - len + 1;
+
+    bool after_resize = false;
+    if (alen==new_len) {
+    } else if (alen<new_len) {
+      double_array_resize(_a, new_len);
+      _a->length = new_len;
+    } else {
+      after_resize = true;
+    }
+    
+    memmove(_a->v.d+beg+1, _a->v.d+len, sizeof(double) * (alen-beg-len));
+    _a->v.d[beg] = NUM2DBL(val);
+
+    if (after_resize) {
+      double_array_resize(_a, new_len);
+      _a->length = new_len;
+    }
+
+    return self;
+  }
+}
+
+VALUE rb_double_array_aset(int argc, const VALUE *argv, VALUE self)
+{
+  long offset, beg, len;
+  VALUE val;
+
+  if (argc == 3) {
+    beg = NUM2LONG(argv[0]);
+    len = NUM2LONG(argv[1]);
+    val = argv[2];
+    return double_array_aset2(self, beg, len, val);
+  }
+
+  rb_check_arity(argc, 2, 2);
+
+  if (FIXNUM_P(argv[0])) {
+    offset = FIX2LONG(argv[0]);
+    val = argv[1];
+    return double_array_aset1(self, offset, val);
+  }
+
+  VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
+  if (rb_range_beg_len(argv[0], &beg, &len, _a->length, 1)) {
+    val = argv[1];
+    return double_array_aset2(self, beg, len, val);
+  }
+
+  offset = NUM2LONG(argv[0]);
+  val = argv[1];
+  return double_array_aset1(self, offset, val);
 }
 
 VALUE rb_double_array_coerce(VALUE self, VALUE other)
@@ -2626,7 +2737,7 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleArray, "*", rb_double_array_mul, 1);
   rb_define_method(rb_cDoubleArray, "/", rb_double_array_div, 1);
   rb_define_method(rb_cDoubleArray, "[]", rb_double_array_aref, -1);
-  rb_define_method(rb_cDoubleArray, "[]=", rb_double_array_aset, 2);
+  rb_define_method(rb_cDoubleArray, "[]=", rb_double_array_aset, -1);
   rb_define_method(rb_cDoubleArray, "each", rb_double_array_each, 0);
   rb_define_method(rb_cDoubleArray, "to_a", rb_double_array_get_values, 0);
   rb_define_method(rb_cDoubleArray, "coerce", rb_double_array_coerce, 1);

@@ -67,14 +67,38 @@ class VdspDoubleArrayTest < Minitest::Test
   end
 
   def test_aset
-    a = Vdsp::DoubleArray.new(3)
-    a[0] = 1.0
-    a[1] = 2.0
-    a[2] = 3.0
+    a = Vdsp::DoubleArray.new(0)
+    assert_equal [], a.to_a
 
-    assert_equal 1.0, a[0]
-    assert_equal 2.0, a[1]
-    assert_equal 3.0, a[2]
+    a[4] = 4.0
+    assert_equal [0.0, 0.0, 0.0, 0.0, 4.0], a.to_a
+
+    a[0, 3] = [1.0, 2.0, 3.0]
+    assert_equal [1.0, 2.0, 3.0, 0.0, 4.0], a.to_a
+
+    a[1..2] = [1.0, 2.0]
+    assert_equal [1.0, 1.0, 2.0, 0.0, 4.0], a.to_a
+
+    a[0, 2] = -1.0
+    assert_equal [-1.0, 2.0, 0.0, 4.0], a.to_a
+
+    a[0..2] = -2.0
+    assert_equal [-2.0, 4.0], a.to_a
+
+    a[-1] = 99.0
+    assert_equal [-2.0, 99.0], a.to_a
+
+    a[1..-1] = 0.0
+    assert_equal [-2.0, 0.0], a.to_a
+
+    a[1..-1] = []
+    assert_equal [-2.0], a.to_a
+
+    a[0, 0] = [1.0, 2.0]
+    assert_equal [1.0, 2.0, -2.0], a.to_a
+
+    a[3, 0] = -3.0
+    assert_equal [1.0, 2.0, -2.0, -3.0], a.to_a
   end
 
   def test_operator_add
