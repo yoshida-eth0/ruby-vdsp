@@ -524,7 +524,9 @@ VALUE double_array_aset2(VALUE self, long beg, long len, VALUE val)
     long new_len = alen - len + _b->length;
 
     bool after_resize = false;
+    bool rear_move = true;
     if (alen==new_len) {
+      rear_move = false;
     } else if (alen<new_len) {
       double_array_resize(_a, new_len);
       _a->length = new_len;
@@ -532,7 +534,9 @@ VALUE double_array_aset2(VALUE self, long beg, long len, VALUE val)
       after_resize = true;
     }
 
-    memmove(_a->v.d+beg+_b->length, _a->v.d+beg+len, sizeof(double) * (alen-beg-len));
+    if (rear_move) {
+      memmove(_a->v.d+beg+_b->length, _a->v.d+beg+len, sizeof(double) * (alen-beg-len));
+    }
     memcpy(_a->v.d+beg, _b->v.d, sizeof(double) * _b->length);
 
     if (after_resize) {
@@ -1075,6 +1079,35 @@ VALUE rb_double_biquad_apply(VALUE self, VALUE x)
 
 
 // Vdsp static method
+
+// c[i] = a[i]
+VALUE rb_double_copy(
+  VALUE cls,
+  VALUE a, VALUE a_offset, VALUE a_stride,
+  VALUE c, VALUE c_offset, VALUE c_stride,
+  VALUE n)
+{
+  VdspArrayParam _a;
+  VdspArrayParam _c;
+
+  array_param(&_a, a, a_offset, a_stride);
+  array_param(&_c, c, c_offset, c_stride);
+
+  vDSP_Length _n = NUM2LONG(n);
+
+  if (_a.stride==1 && _c.stride==1) {
+    memmove(_c.res0->v.d+_c.offset, _a.res0->v.d+_a.offset, sizeof(double) * _n);
+  } else {
+    double _b = 0;
+    vDSP_vsaddD(
+      _a.res0->v.d+_a.offset, _a.stride,
+      &_b,
+      _c.res0->v.d+_c.offset, _c.stride,
+      _n);
+  }
+
+  return c;
+}
 
 // c[i] = a[i] + b
 VALUE rb_double_vsadd(
@@ -2800,6 +2833,7 @@ void Init_vdsp()
 
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
+  rb_define_singleton_method(rb_mUnsafeDouble, "copy", rb_double_copy, 7);
 
   // Vdsp::UnsafeDouble Vector-based Arithmetic
   rb_define_singleton_method(rb_mUnsafeDouble, "vsadd", rb_double_vsadd, 8);

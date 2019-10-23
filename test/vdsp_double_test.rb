@@ -1,6 +1,23 @@
 require "test_helper"
 
 class VdspDoubleTest < Minitest::Test
+  def test_copy
+    # c[i] = a[i]
+    a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
+    c1 = Vdsp::DoubleArray.new(3)
+    c2 = Vdsp::DoubleArray.new(3)
+    Vdsp::UnsafeDouble::copy(a, 0, 1, c1, 0, 1, a.length)
+    Vdsp::UnsafeDouble::copy(a, 0, 2, c2, 0, 2, 2)
+
+    assert_equal 1.0, c1[0]
+    assert_equal 2.0, c1[1]
+    assert_equal 3.0, c1[2]
+
+    assert_equal 1.0, c2[0]
+    assert_equal 0.0, c2[1]
+    assert_equal 3.0, c2[2]
+  end
+
   def test_vsadd
     # c[i] = a[i] + b
     a = Vdsp::DoubleArray.create([1.0, 2.0, 3.0])
