@@ -5,17 +5,21 @@ VALUE rb_mVdsp;
 
 VALUE rb_mVdspScalar;
 VALUE rb_mVdspArray;
+VALUE rb_mVdspSplitComplex;
 VALUE rb_mVdspBiquad;
+VALUE rb_mVdspFFT;
 
 VALUE rb_cDoubleScalar;
 VALUE rb_cDoubleArray;
+VALUE rb_cDoubleSplitComplex;
 VALUE rb_mUnsafeDouble;
 VALUE rb_cDoubleBiquad;
+VALUE rb_cDoubleFFT;
 
 
 // Array native resource
 
-void vdsp_array_native_resource_delete(VdspArrayNativeResource * p)
+void vdsp_array_native_resource_delete(VdspArrayNativeResource *p)
 {
   if (p->v.ptr) {
     free(p->v.ptr);
@@ -32,7 +36,7 @@ VdspArrayNativeResource* get_vdsp_array_native_resource(VALUE va)
 
   VALUE resource = rb_iv_get(va, "native_resource");
   if (resource==Qnil) {
-    return NULL;
+    rb_raise(rb_eArgError, "Vdsp::Array has no native resource");
   }
 
   VdspArrayNativeResource *p;
@@ -59,7 +63,7 @@ void array_param2(VdspArrayParam *param, VALUE arr0, VALUE arr1, VALUE offset, V
 
 // Biquad native resource
 
-void vdsp_biquad_native_resource_delete(VdspBiquadNativeResource * p)
+void vdsp_biquad_native_resource_delete(VdspBiquadNativeResource *p)
 {
   if (p->setup.ptr) {
     if (p->type=='d') {
@@ -82,11 +86,66 @@ VdspBiquadNativeResource* get_vdsp_biquad_native_resource(VALUE vb)
 
   VALUE resource = rb_iv_get(vb, "native_resource");
   if (resource==Qnil) {
-    return NULL;
+    rb_raise(rb_eArgError, "Vdsp::Biquad has no native resource");
   }
 
   VdspBiquadNativeResource *p;
   Data_Get_Struct(resource, VdspBiquadNativeResource, p);
+
+  return p;
+}
+
+
+// FFT native resource
+
+void vdsp_fft_native_resource_delete(VdspFFTNativeResource *p)
+{
+  if (p->setup.value) {
+    if (p->type=='d') {
+      vDSP_destroy_fftsetupD(p->setup.d);
+    }
+  }
+  free(p);
+}
+
+VdspFFTNativeResource* get_vdsp_fft_native_resource(VALUE vf)
+{
+  if (!rb_obj_is_kind_of(vf, rb_mVdspFFT)) {
+    rb_raise(rb_eArgError, "Vdsp::FFT required");
+  }
+
+  VALUE resource = rb_iv_get(vf, "native_resource");
+  if (resource==Qnil) {
+    rb_raise(rb_eArgError, "Vdsp::FFT has no native resource");
+  }
+
+  VdspFFTNativeResource *p;
+  Data_Get_Struct(resource, VdspFFTNativeResource, p);
+
+  return p;
+}
+
+
+// SplitComplex native resource
+
+VdspSplitComplexNativeResource* get_vdsp_split_complex_native_resource(VALUE vc, VdspSplitComplexNativeResource *p)
+{
+  if (!rb_obj_is_kind_of(vc, rb_mVdspSplitComplex)) {
+    rb_raise(rb_eArgError, "Vdsp::SplitComplex required");
+  }
+
+  VALUE real = rb_funcall(vc, rb_intern("real"), 0);
+  if (real==Qnil) {
+    rb_raise(rb_eArgError, "Vdsp::SplitComplex has no real resource");
+  }
+
+  VALUE imag = rb_funcall(vc, rb_intern("imag"), 0);
+  if (imag==Qnil) {
+    rb_raise(rb_eArgError, "Vdsp::SplitComplex has no imag resource");
+  }
+
+  p->real = get_vdsp_array_native_resource(real);
+  p->imag = get_vdsp_array_native_resource(imag);
 
   return p;
 }
@@ -1075,6 +1134,79 @@ VALUE rb_double_biquad_apply(VALUE self, VALUE x)
   vDSP_biquadD(_b->setup.d, _b->delay.d, _x->v.d, 1, _y->v.d, 1, _x->length);
 
   return y;
+}
+
+
+// Vdsp::DoubleFFT
+
+VALUE rb_double_fft_initialize(VALUE self, VALUE length, VALUE radix)
+{
+  VdspFFTNativeResource *p = ALLOC(VdspFFTNativeResource);
+  p->type = 'd';
+  p->length = 0;
+  p->log2n = 0;
+  p->radix = 0;
+  p->setup.value = NULL;
+
+  VALUE resource = Data_Wrap_Struct(CLASS_OF(self), 0, vdsp_fft_native_resource_delete, p);
+  rb_iv_set(self, "native_resource", resource);
+
+  p->length = NUM2LONG(length);
+  p->halflength = p->length / 2;
+  p->log2n = log2(p->length);
+  p->radix = (FFTRadix)NUM2LONG(radix);
+  p->setup.d = vDSP_create_fftsetupD(p->log2n, p->radix);
+
+  return self;
+}
+
+VALUE rb_double_fft_forward(VALUE self, VALUE va)
+{
+  VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(self);
+  VdspArrayNativeResource *_va = get_vdsp_array_native_resource(va);
+
+  if (_vf->length!=_va->length) {
+    rb_raise(rb_eArgError, "wrong length: Vdsp::FFT=%ld Vdsp::Array=%ld", _vf->length, _va->length);
+  }
+
+  VALUE lenv = LONG2NUM(_vf->halflength);
+  VALUE vc = rb_class_new_instance(1, &lenv, rb_cDoubleSplitComplex);
+  VdspSplitComplexNativeResource _vc;
+  get_vdsp_split_complex_native_resource(vc, &_vc);
+
+  DSPDoubleSplitComplex z;
+  z.realp = _vc.real->v.d;
+  z.imagp = _vc.imag->v.d;
+
+  vDSP_ctozD((DSPDoubleComplex *)_va->v.d, 2, &z, 1, _vf->halflength);
+  vDSP_fft_zripD(_vf->setup.d, &z, 1, _vf->log2n, FFT_FORWARD);
+
+  double scale = 1.0 / (_vf->length * 2);
+  vDSP_vsmulD(z.realp, 1, &scale, z.realp, 1, _vf->halflength);
+  vDSP_vsmulD(z.imagp, 1, &scale, z.imagp, 1, _vf->halflength);
+
+  return vc;
+}
+
+VALUE rb_double_fft_magnitude(VALUE self, VALUE va)
+{
+  VALUE vc = rb_double_fft_forward(self, va);
+
+  VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(self);
+  VdspSplitComplexNativeResource _vc;
+  get_vdsp_split_complex_native_resource(vc, &_vc);
+
+  DSPDoubleSplitComplex z;
+  z.realp = _vc.real->v.d;
+  z.imagp = _vc.imag->v.d;
+
+  VALUE lenv = LONG2NUM(_vf->halflength);
+  VALUE mag = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_mag = get_vdsp_array_native_resource(mag);
+
+  vDSP_zvabsD(&z, 1, _mag->v.d, 1, _vf->halflength);
+
+  return mag;
 }
 
 
@@ -2830,6 +2962,26 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleBiquad, "coefficients=", rb_double_biquad_set_coefficients, 1);
   rb_define_method(rb_cDoubleBiquad, "coefficients", rb_double_biquad_get_coefficients, 0);
   rb_define_method(rb_cDoubleBiquad, "apply", rb_double_biquad_apply, 1);
+
+  // Vdsp::SplitComplex
+  rb_mVdspSplitComplex = rb_define_module_under(rb_mVdsp, "SplitComplex");
+
+  // Vdsp::DoubleSplitComplex
+  rb_cDoubleSplitComplex = rb_define_class_under(rb_mVdsp, "DoubleSplitComplex", rb_cObject);
+  rb_include_module(rb_cDoubleSplitComplex, rb_mVdspSplitComplex);
+
+  // Vdsp::FFT
+  rb_mVdspFFT = rb_define_module_under(rb_mVdsp, "FFT");
+  rb_define_const(rb_mVdspFFT, "Radix2", LONG2NUM(kFFTRadix2));
+  rb_define_const(rb_mVdspFFT, "Radix3", LONG2NUM(kFFTRadix3));
+  rb_define_const(rb_mVdspFFT, "Radix5", LONG2NUM(kFFTRadix5));
+
+  // Vdsp::DoubleFFT
+  rb_cDoubleFFT = rb_define_class_under(rb_mVdsp, "DoubleFFT", rb_cObject);
+  rb_include_module(rb_cDoubleFFT, rb_mVdspFFT);
+  rb_define_method(rb_cDoubleFFT, "initialize", rb_double_fft_initialize, 2);
+  rb_define_method(rb_cDoubleFFT, "forward", rb_double_fft_forward, 1);
+  rb_define_method(rb_cDoubleFFT, "magnitude", rb_double_fft_magnitude, 1);
 
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");

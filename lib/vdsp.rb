@@ -8,4 +8,18 @@ module Vdsp
   module Biquad
     Coefficient = Struct.new("Coefficient", :b0, :b1, :b2, :a1, :a2)
   end
+
+  module SplitComplex
+    attr_reader :real
+    attr_reader :imag
+  end
+
+  class DoubleSplitComplex
+    include SplitComplex
+
+    def initialize(length)
+      @real = DoubleArray.new(length)
+      @imag = DoubleArray.new(length)
+    end
+  end
 end

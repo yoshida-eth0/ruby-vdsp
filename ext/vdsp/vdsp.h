@@ -45,6 +45,31 @@ typedef struct {
 } VdspBiquadNativeResource;
 
 
+// VdspFFT
+
+typedef union {
+  void *value;
+  FFTSetupD d;
+} VdspFFTSetup;
+
+typedef struct {
+  char type;
+  VdspFFTSetup setup;
+  unsigned long length;
+  unsigned long halflength;
+  vDSP_Length log2n;
+  FFTRadix radix;
+} VdspFFTNativeResource;
+
+
+// VdspSplitComplex
+
+typedef struct {
+  VdspArrayNativeResource *real;
+  VdspArrayNativeResource *imag;
+} VdspSplitComplexNativeResource;
+
+
 extern VALUE rb_double_array_plus(VALUE self, VALUE other);
 extern VALUE rb_double_array_mul(VALUE self, VALUE other);
 extern void double_array_resize(VdspArrayNativeResource *_a, unsigned long len);
