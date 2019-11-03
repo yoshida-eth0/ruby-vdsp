@@ -694,6 +694,7 @@ VALUE rb_double_array_resize(VALUE self, VALUE size)
 VALUE rb_double_array_concat(int argc, const VALUE *argv, VALUE self)
 {
   rb_check_frozen(self);
+  rb_check_arity(argc, 1, UNLIMITED_ARGUMENTS);
 
   VdspArrayNativeResource *_a = get_vdsp_array_native_resource(self);
   VdspArrayNativeResource *_argv[argc];
@@ -815,9 +816,7 @@ VALUE rb_double_array_vgen(VALUE cls, VALUE a, VALUE b, VALUE n)
 
 VALUE rb_double_array_blkman_window(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc<1 || 2<argc) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
-  }
+  rb_check_arity(argc, 1, 2);
   VALUE n = argv[0];
 
   vDSP_Length _n = NUM2LONG(n);
@@ -836,9 +835,7 @@ VALUE rb_double_array_blkman_window(int argc, const VALUE *argv, VALUE cls)
 
 VALUE rb_double_array_hamm_window(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc<1 || 2<argc) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
-  }
+  rb_check_arity(argc, 1, 2);
   VALUE n = argv[0];
 
   vDSP_Length _n = NUM2LONG(n);
@@ -857,9 +854,7 @@ VALUE rb_double_array_hamm_window(int argc, const VALUE *argv, VALUE cls)
 
 VALUE rb_double_array_hann_window(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc<1 || 2<argc) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 1..2)", argc);
-  }
+  rb_check_arity(argc, 1, 2);
   VALUE n = argv[0];
 
   vDSP_Length _n = NUM2LONG(n);
@@ -1764,9 +1759,8 @@ VALUE rb_double_vsmsma(
 // e[i] = (a[i] + b[i]) * (c[i] + d[i])
 VALUE rb_double_vaam(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc!=16) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
-  }
+  rb_check_arity(argc, 16, 16);
+
   VALUE a = argv[0];
   VALUE a_offset = argv[1];
   VALUE a_stride = argv[2];
@@ -1812,9 +1806,8 @@ VALUE rb_double_vaam(int argc, const VALUE *argv, VALUE cls)
 // e[i] = (a[i] * b[i]) - (c[i] * d[i])
 VALUE rb_double_vmmsb(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc!=16) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
-  }
+  rb_check_arity(argc, 16, 16);
+
   VALUE a = argv[0];
   VALUE a_offset = argv[1];
   VALUE a_stride = argv[2];
@@ -1860,9 +1853,8 @@ VALUE rb_double_vmmsb(int argc, const VALUE *argv, VALUE cls)
 // e[i] = (a[i] - b[i]) * (c[i] - d[i])
 VALUE rb_double_vsbsbm(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc!=16) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
-  }
+  rb_check_arity(argc, 16, 16);
+
   VALUE a = argv[0];
   VALUE a_offset = argv[1];
   VALUE a_stride = argv[2];
@@ -1908,9 +1900,8 @@ VALUE rb_double_vsbsbm(int argc, const VALUE *argv, VALUE cls)
 // e[i] = (a[i] + b[i]) * (c[i] - d[i])
 VALUE rb_double_vasbm(int argc, const VALUE *argv, VALUE cls)
 {
-  if (argc!=16) {
-    rb_raise(rb_eArgError, "wrong number of arguments (given %d, expected 16)", argc);
-  }
+  rb_check_arity(argc, 16, 16);
+
   VALUE a = argv[0];
   VALUE a_offset = argv[1];
   VALUE a_stride = argv[2];
