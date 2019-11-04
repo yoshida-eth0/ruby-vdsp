@@ -1134,8 +1134,15 @@ VALUE rb_double_biquad_apply(VALUE self, VALUE x)
 
 // Vdsp::DoubleFFT
 
-VALUE rb_double_fft_initialize(VALUE self, VALUE length, VALUE radix)
+VALUE rb_double_fft_initialize(int argc, const VALUE *argv, VALUE self)
 {
+  rb_check_arity(argc, 1, 2);
+  long length = NUM2LONG(argv[0]);
+  FFTRadix radix = kFFTRadix2;
+  if (argc==2) {
+    radix = (FFTRadix)NUM2LONG(argv[1]);
+  }
+
   VdspFFTNativeResource *p = ALLOC(VdspFFTNativeResource);
   p->type = 'd';
   p->length = 0;
@@ -1146,11 +1153,11 @@ VALUE rb_double_fft_initialize(VALUE self, VALUE length, VALUE radix)
   VALUE resource = Data_Wrap_Struct(CLASS_OF(self), 0, vdsp_fft_native_resource_delete, p);
   rb_iv_set(self, "native_resource", resource);
 
-  p->length = NUM2LONG(length);
-  p->halflength = p->length / 2;
-  p->log2n = log2(p->length);
-  p->radix = (FFTRadix)NUM2LONG(radix);
-  p->setup.d = vDSP_create_fftsetupD(p->log2n, p->radix);
+  p->length = length;
+  p->halflength = length / 2;
+  p->log2n = log2(length);
+  p->radix = radix;
+  p->setup.d = vDSP_create_fftsetupD(p->log2n, radix);
 
   return self;
 }
@@ -2970,7 +2977,7 @@ void Init_vdsp()
   // Vdsp::DoubleFFT
   rb_cDoubleFFT = rb_define_class_under(rb_mVdsp, "DoubleFFT", rb_cObject);
   rb_include_module(rb_cDoubleFFT, rb_mVdspFFT);
-  rb_define_method(rb_cDoubleFFT, "initialize", rb_double_fft_initialize, 2);
+  rb_define_method(rb_cDoubleFFT, "initialize", rb_double_fft_initialize, -1);
   rb_define_method(rb_cDoubleFFT, "forward", rb_double_fft_forward, 1);
   rb_define_method(rb_cDoubleFFT, "magnitude", rb_double_fft_magnitude, 1);
 
