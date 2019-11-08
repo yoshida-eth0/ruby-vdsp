@@ -1135,7 +1135,7 @@ VALUE rb_double_fft_initialize(int argc, const VALUE *argv, VALUE self)
   return self;
 }
 
-VALUE double_fft_forward1(VALUE fft, VALUE va)
+VALUE double_fft_forward_r(VALUE fft, VALUE va)
 {
   VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(fft);
   VdspArrayNativeResource *_va = get_vdsp_array_native_resource(va);
@@ -1164,7 +1164,7 @@ VALUE double_fft_forward1(VALUE fft, VALUE va)
   return rb_assoc_new(real, imag);
 }
 
-VALUE double_fft_forward2(VALUE fft, VALUE real, VALUE imag)
+VALUE double_fft_forward_z(VALUE fft, VALUE real, VALUE imag)
 {
   VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(fft);
   VdspArrayNativeResource *_real = get_vdsp_array_native_resource(real);
@@ -1196,9 +1196,68 @@ VALUE rb_double_fft_forward(int argc, const VALUE *argv, VALUE self)
 {
   rb_check_arity(argc, 1, 2);
   if (argc==2 && argv[1]!=Qnil) {
-    return double_fft_forward2(self, argv[0], argv[1]);
+    return double_fft_forward_z(self, argv[0], argv[1]);
   }
-  return double_fft_forward1(self, argv[0]);
+  return double_fft_forward_r(self, argv[0]);
+}
+
+VALUE double_fft_inverse_r(VALUE fft, VALUE real, VALUE imag)
+{
+  real = rb_funcall(real, rb_intern("clone"), 0);
+  imag = rb_funcall(imag, rb_intern("clone"), 0);
+
+  VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(fft);
+  VdspArrayNativeResource *_real = get_vdsp_array_native_resource(real);
+  VdspArrayNativeResource *_imag = get_vdsp_array_native_resource(imag);
+
+  DSPDoubleSplitComplex z;
+  z.realp = _real->v.d;
+  z.imagp = _imag->v.d;
+
+  vDSP_fft_zripD(_vf->setup.d, &z, 1, _vf->log2n, FFT_INVERSE);
+
+  VALUE lenv = LONG2NUM(_vf->length);
+  VALUE inverse = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_inverse = get_vdsp_array_native_resource(inverse);
+
+  vDSP_ztocD(&z, 1, (DSPDoubleComplex *)_inverse->v.d, 2, _vf->halflength);
+
+  return rb_assoc_new(inverse, Qnil);
+}
+
+VALUE double_fft_inverse_z(VALUE fft, VALUE real, VALUE imag)
+{
+  real = rb_funcall(real, rb_intern("clone"), 0);
+  imag = rb_funcall(imag, rb_intern("clone"), 0);
+
+  VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(fft);
+  VdspArrayNativeResource *_real = get_vdsp_array_native_resource(real);
+  VdspArrayNativeResource *_imag = get_vdsp_array_native_resource(imag);
+
+  DSPDoubleSplitComplex z;
+  z.realp = _real->v.d;
+  z.imagp = _imag->v.d;
+
+  vDSP_fft_zipD(_vf->setup.d, &z, 1, _vf->log2n, FFT_INVERSE);
+
+  return rb_assoc_new(real, imag);
+}
+
+VALUE rb_double_fft_inverse(VALUE self, VALUE real, VALUE imag)
+{
+  VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(self);
+  VdspArrayNativeResource *_real = get_vdsp_array_native_resource(real);
+  VdspArrayNativeResource *_imag = get_vdsp_array_native_resource(imag);
+
+  if (_vf->length==_real->length) {
+    return double_fft_inverse_z(self, real, imag);
+
+  } else if (_vf->halflength==_real->length) {
+    return double_fft_inverse_r(self, real, imag);
+
+  } else {
+    rb_raise(rb_eArgError, "wrong length: Vdsp::FFT=%ld Vdsp::Array(real)=%ld Vdsp::Array(imag)=%ld", _vf->length, _real->length, _imag->length);
+  }
 }
 
 VALUE rb_double_fft_spectrum(int argc, const VALUE *argv, VALUE self)
@@ -1207,7 +1266,6 @@ VALUE rb_double_fft_spectrum(int argc, const VALUE *argv, VALUE self)
   VALUE real = RARRAY_AREF(ri, 0);
   VALUE imag = RARRAY_AREF(ri, 1);
 
-  VdspFFTNativeResource *_vf = get_vdsp_fft_native_resource(self);
   VdspArrayNativeResource *_real = get_vdsp_array_native_resource(real);
   VdspArrayNativeResource *_imag = get_vdsp_array_native_resource(imag);
 
@@ -2983,6 +3041,7 @@ void Init_vdsp()
   rb_include_module(rb_cDoubleFFT, rb_mVdspFFT);
   rb_define_method(rb_cDoubleFFT, "initialize", rb_double_fft_initialize, -1);
   rb_define_method(rb_cDoubleFFT, "forward", rb_double_fft_forward, -1);
+  rb_define_method(rb_cDoubleFFT, "inverse", rb_double_fft_inverse, 2);
   rb_define_method(rb_cDoubleFFT, "spectrum", rb_double_fft_spectrum, -1);
 
   // Vdsp::UnsafeDouble
