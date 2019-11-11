@@ -8,11 +8,15 @@ class VdspDoubleFFTTest < Minitest::Test
     # TODO
   end
 
+  def test_inverse
+    # TODO
+  end
+
   def test_spectrum
     # TODO
   end
 
-  def test_inverse
+  def test_inverse_spectrum
     # TODO
   end
 end

@@ -1269,15 +1269,39 @@ VALUE rb_double_fft_spectrum(int argc, const VALUE *argv, VALUE self)
   VdspArrayNativeResource *_real = get_vdsp_array_native_resource(real);
   VdspArrayNativeResource *_imag = get_vdsp_array_native_resource(imag);
 
-  VALUE lenv = LONG2NUM(_real->length);
-  VALUE mag = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  DSPDoubleSplitComplex z;
+  z.realp = _real->v.d;
+  z.imagp = _imag->v.d;
+
+  VALUE lenv = LONG2NUM(_real->length*2);
+  VALUE tmp = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_tmp = get_vdsp_array_native_resource(tmp);
+
+  vDSP_ztocD(&z, 1, (DSPDoubleComplex *)_tmp->v.d, 2, _real->length);
+  vDSP_polarD(_tmp->v.d, 2, _tmp->v.d, 2, _real->length);
+  vDSP_ctozD((DSPDoubleComplex *)_tmp->v.d, 2, &z, 1, _real->length);
+
+  return rb_assoc_new(real, imag);
+}
+
+VALUE rb_double_fft_inverse_spectrum(VALUE self, VALUE mag, VALUE pha)
+{
   VdspArrayNativeResource *_mag = get_vdsp_array_native_resource(mag);
+  VdspArrayNativeResource *_pha = get_vdsp_array_native_resource(pha);
 
-  // real**2 + imag**2
-  vDSP_vmulD(_real->v.d, 1, _real->v.d, 1, _mag->v.d, 1, _mag->length);
-  vDSP_vmaD(_imag->v.d, 1, _imag->v.d, 1, _mag->v.d, 1, _mag->v.d, 1, _mag->length);
+  DSPDoubleSplitComplex z;
+  z.realp = _mag->v.d;
+  z.imagp = _pha->v.d;
 
-  return mag;
+  VALUE lenv = LONG2NUM(_mag->length*2);
+  VALUE tmp = rb_class_new_instance(1, &lenv, rb_cDoubleArray);
+  VdspArrayNativeResource *_tmp = get_vdsp_array_native_resource(tmp);
+
+  vDSP_ztocD(&z, 1, (DSPDoubleComplex *)_tmp->v.d, 2, _mag->length);
+  vDSP_rectD(_tmp->v.d, 2, _tmp->v.d, 2, _mag->length);
+  vDSP_ctozD((DSPDoubleComplex *)_tmp->v.d, 2, &z, 1, _mag->length);
+
+  return rb_double_fft_inverse(self, mag, pha);
 }
 
 
@@ -3043,6 +3067,7 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleFFT, "forward", rb_double_fft_forward, -1);
   rb_define_method(rb_cDoubleFFT, "inverse", rb_double_fft_inverse, 2);
   rb_define_method(rb_cDoubleFFT, "spectrum", rb_double_fft_spectrum, -1);
+  rb_define_method(rb_cDoubleFFT, "inverse_spectrum", rb_double_fft_inverse_spectrum, 2);
 
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
