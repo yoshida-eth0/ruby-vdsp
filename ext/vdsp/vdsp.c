@@ -1260,7 +1260,7 @@ VALUE rb_double_fft_inverse(VALUE self, VALUE real, VALUE imag)
   }
 }
 
-VALUE rb_double_fft_spectrum(int argc, const VALUE *argv, VALUE self)
+VALUE rb_double_fft_forward_polar(int argc, const VALUE *argv, VALUE self)
 {
   VALUE ri = rb_double_fft_forward(argc, argv, self);
   VALUE real = RARRAY_AREF(ri, 0);
@@ -1284,7 +1284,7 @@ VALUE rb_double_fft_spectrum(int argc, const VALUE *argv, VALUE self)
   return rb_assoc_new(real, imag);
 }
 
-VALUE rb_double_fft_inverse_spectrum(VALUE self, VALUE mag, VALUE pha)
+VALUE rb_double_fft_inverse_polar(VALUE self, VALUE mag, VALUE pha)
 {
   VdspArrayNativeResource *_mag = get_vdsp_array_native_resource(mag);
   VdspArrayNativeResource *_pha = get_vdsp_array_native_resource(pha);
@@ -3066,8 +3066,10 @@ void Init_vdsp()
   rb_define_method(rb_cDoubleFFT, "initialize", rb_double_fft_initialize, -1);
   rb_define_method(rb_cDoubleFFT, "forward", rb_double_fft_forward, -1);
   rb_define_method(rb_cDoubleFFT, "inverse", rb_double_fft_inverse, 2);
-  rb_define_method(rb_cDoubleFFT, "spectrum", rb_double_fft_spectrum, -1);
-  rb_define_method(rb_cDoubleFFT, "inverse_spectrum", rb_double_fft_inverse_spectrum, 2);
+  rb_define_alias(rb_cDoubleFFT,  "forward_rect", "forward");
+  rb_define_alias(rb_cDoubleFFT,  "inverse_rect", "inverse");
+  rb_define_method(rb_cDoubleFFT, "forward_polar", rb_double_fft_forward_polar, -1);
+  rb_define_method(rb_cDoubleFFT, "inverse_polar", rb_double_fft_inverse_polar, 2);
 
   // Vdsp::UnsafeDouble
   rb_mUnsafeDouble = rb_define_module_under(rb_mVdsp, "UnsafeDouble");
